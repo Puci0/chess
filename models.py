@@ -14,7 +14,6 @@ class Piece(enum.Enum):
     KING = enum.auto()
     QUEEN = enum.auto()
 
-# Użyj Unicode do reprezentacji figur
 chrs = {
     (Color.WHITE, Piece.EMPTY): "\u00B7 ",
     (Color.WHITE, Piece.PAWN): "P ",
