@@ -2,6 +2,10 @@ import time
 import chess
 from datetime import datetime
 from views import ConsoleView, TerminalView
+from models import Player
+import pathlib
+import requests
+
 
 class ChessController:
     def __init__(self):
@@ -10,8 +14,9 @@ class ChessController:
         self.terminal_view = TerminalView()
         self.white_castling = 0
         self.black_castling = 0
-        self.folder_path = "C:\\Users\\user\\Desktop\\chess_history\\"
-        self.filename = f"{self.folder_path}game_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.txt"
+        self.folder_path = (pathlib.Path(__file__).parent / 'chess_history').resolve()
+        self.folder_path.mkdir(exist_ok=True)
+        self.current_player = Player.HUMAN
 
     def display(self):
         self.view.display_board(self.board)
@@ -75,20 +80,44 @@ class ChessController:
             return 1
 
     def play_game(self):
-        date_time = datetime.now().strftime('%d-%m-%Y_%H-%M-%S')
+        self.filename = self.folder_path / f"game_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.txt"
+        # date_time = datetime.now().strftime('%d-%m-%Y_%H-%M-%S')
         while True:
+            print(self.board.fen())
             self.terminal_view.clear_terminal()
             self.display()
-            move = input("Enter a move: ")
-            if self.move(move) == 1:
-                break
-            self.save_move(move, self.folder_path, date_time)
+            if self.current_player == Player.HUMAN:
+                # human playing
+                move = input("Enter a move: ")
+                if self.move(move) == 1:
+                    break
+                self.save_move(move)
 
-    def open_file(self, filename):
-        return open(filename, "a")
+                self.current_player = Player.BOT
+            else:
+                # bot playing
+                print('Bot is thinking...')
+                URL = 'https://stockfish.online/api/s/v2.php'
+                params = {
+                    'fen': self.board.fen(),
+                    'depth': 4
+                }
+                # dodac obsluge bledow
+                response = requests.get(URL, params=params)
+                data = response.json()
+                move = data['bestmove'].split(' ')[1]
 
-    def save_move(self, move, folder_path, date_time):
-        with self.open_file(f"{folder_path}game_{date_time}.txt") as f:
+                if self.move(move) == 1:
+                    break
+                self.save_move(move)
+
+                self.current_player = Player.HUMAN
+
+    # def open_file(self, filename):
+    #     return open(filename, "a")
+
+    def save_move(self, move):
+        with open(self.filename, 'a') as f:
             f.write(f"{move}\n")
 
     def display_history(self):
