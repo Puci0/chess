@@ -4,6 +4,8 @@ from models import chrs, Color, Piece
 import chess
 from blessed import Terminal
 import os
+import msvcrt
+
 class ConsoleView:
     def __init__(self):
         self.console = Console()
@@ -42,6 +44,8 @@ class ConsoleView:
         self.console.print("")
         self.console.print(column_labels)
 
+    def display_message(self, message):
+        self.console.print(message)
 
 class TerminalView:
     def __init__(self):
@@ -50,47 +54,50 @@ class TerminalView:
     def clear_terminal(self):
         os.system('cls' if os.name == 'nt' else 'clear')
 
-    def list_files(self, directory):
-        current_directory = directory
+    def display_files(self, files, selected_index):
+        self.clear_terminal()
+        print(self.term.bold("Game History Manager"))
+        print("Files: ")
+
+        for i, file in enumerate(files):
+            if i == selected_index:
+                print(self.term.bold(self.term.white(f"> {file}")))
+            else:
+                print(self.term.blue(f"  {file}"))
+
+        print("\nPress W to go up, S to go down, Enter to open in analysis mode, R to run game with 1sec delay, Q to quit:")
+
+    def navigate_files(self, folder_path, controller):
+        current_directory = folder_path
         selected_index = 0
 
         while True:
             files = os.listdir(current_directory)
             num_files = len(files)
 
-            self.clear_terminal()
-            print(self.term.bold("Game History Manager"))
-            print("Files: ")
+            self.display_files(files, selected_index)
 
-            for idx, file in enumerate(files):
-                if idx == selected_index:
-                    print(self.term.bold(self.term.white(f"> {file}")))
-                else:
-                    print(self.term.blue(f"  {file}"))
-
-            print("\nPress W to go up, S to go down, Enter to open, Q to quit:")
-
-            with self.term.cbreak():
-                choice = self.term.inkey()
-                if choice.lower() == 'q':
+            choice = msvcrt.getch()
+            if choice == b'q':
+                break
+            elif choice == b'w':
+                selected_index = (selected_index - 1) % num_files
+            elif choice == b's':
+                selected_index = (selected_index + 1) % num_files
+            elif choice == b'\r':
+                selected = files[selected_index]
+                new_path = os.path.join(current_directory, selected)
+                if os.path.isdir(new_path):
+                    current_directory = new_path
+                    selected_index = 0
+                elif os.path.isfile(new_path):
+                    controller.analise_game(new_path)
                     break
-                elif choice.lower() == 'w':
-                    selected_index = (selected_index - 1) % num_files
-                elif choice.lower() == 's':
-                    selected_index = (selected_index + 1) % num_files
-                elif choice == "\r":
-                    selected = files[selected_index]
-                    new_path = os.path.join(current_directory, selected)
+            elif choice == b'r':
+                selected = files[selected_index]
+                new_path = os.path.join(current_directory, selected)
+                controller.automatic_game(new_path)
 
-                    if os.path.isdir(new_path):
-                        current_directory = new_path
-                        selected_index = 0
-                    elif os.path.isfile(new_path):
-                        self.open_file(new_path)
-
-    def open_file(self, file_path):
-        self.clear_terminal()
-        with open(file_path, 'r') as f:
-            print(f.read())
-        input(self.term.bold("Press Enter to return..."))
-
+    def get_user_input(self, message):
+        print(message)
+        return msvcrt.getch().decode("utf-8")
