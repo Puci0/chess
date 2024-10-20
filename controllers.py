@@ -9,51 +9,51 @@ import socket
 import threading
 
 
-class ChessSerwer:
-    def __init__(self, host='0.0.0.0', port=12345, verbose=True):
-        self.verbose = verbose
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.bind((host, port))
-        self.server_socket.listen(2)
-        if self.verbose:
-            print(f"Serwer szachowy uruchomiony na {host}:{port}")
-        self.clients = []
-        self.controller = ChessController()
-        self.controller.set_client(self)
-        threading.Thread(target=self.run, daemon=True).start()
+# class ChessSerwer:
+#     def __init__(self, host='0.0.0.0', port=12345, verbose=True):
+#         self.verbose = verbose
+#         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#         self.server_socket.bind((host, port))
+#         self.server_socket.listen(2)
+#         if self.verbose:
+#             print(f"Serwer szachowy uruchomiony na {host}:{port}")
+#         self.clients = []
+#         self.controller = ChessController()
+#         self.controller.set_client(self)
+#         threading.Thread(target=self.run, daemon=True).start()
+#
+#     def run(self):
+#         if self.verbose:
+#             print("Oczekiwanie na graczy ...")
+#         while len(self.clients) < 2:
+#             client_socket, addr = self.server_socket.accept()
+#             if self.verbose:
+#                 print(f"Połączono z {addr}")
+#             threading.Thread(target=self.handle_client, args=(client_socket,)).start()
 
-    def run(self):
-        if self.verbose:
-            print("Oczekiwanie na graczy ...")
-        while len(self.clients) < 2:
-            client_socket, addr = self.server_socket.accept()
-            if self.verbose:
-                print(f"Połączono z {addr}")
-            threading.Thread(target=self.handle_client, args=(client_socket,)).start()
-
-    def handle_client(self, client_socket):
-        self.clients.append(client_socket)
-        try:
-            while True:
-                move = client_socket.recv(1024).decode('utf-8')
-                if not move:
-                    break
-                print(f"Otrzymano ruch od klienta: {move}")
-                if self.controller.receive_move(move) == 1:
-                    print("Gra zakończona przez ruch klienta")
-                    break
-
-                server_move = input("Wprowadź swój ruch: ")
-                if self.controller.receive_move(server_move) == 1:
-                    print("Gra zakończona przez ruch serwera")
-                    break
-
-                for client in self.clients:
-                    if client != client_socket:
-                        client.send(server_move.encode('utf-8'))
-        finally:
-            self.clients.remove(client_socket)
-            client_socket.close()
+    # def handle_client(self, client_socket):
+    #     self.clients.append(client_socket)
+    #     try:
+    #         while True:
+    #             move = client_socket.recv(1024).decode('utf-8')
+    #             if not move:
+    #                 break
+    #             print(f"Otrzymano ruch od klienta: {move}")
+    #             if self.controller.receive_move(move) == 1:
+    #                 print("Gra zakończona przez ruch klienta")
+    #                 break
+    #
+    #             server_move = input("Wprowadź swój ruch: ")
+    #             if self.controller.receive_move(server_move) == 1:
+    #                 print("Gra zakończona przez ruch serwera")
+    #                 break
+    #
+    #             for client in self.clients:
+    #                 if client != client_socket:
+    #                     client.send(server_move.encode('utf-8'))
+    #     finally:
+    #         self.clients.remove(client_socket)
+    #         client_socket.close()
 
 class ChessClient:
     def __init__(self, server_ip, server_port):
@@ -71,30 +71,30 @@ class ChessClient:
             self.connected = False
             return False
 
-    def receive_moves(self):
-        if not self.connected:
-            print("Brak połączenia z serwerem.")
-            return None
-        while True:
-            try:
-                move = self.server_socket.recv(1024).decode('utf-8')
-                if move:
-                    print(f"Otrzymano ruch: {move}")
-                    return move
-                else:
-                    break
-            except OSError as e:
-                print(f"Blad podczas odbierania ruchu: {e}")
-                break
+    # def receive_moves(self):
+    #     if not self.connected:
+    #         print("Brak połączenia z serwerem.")
+    #         return None
+    #     while True:
+    #         try:
+    #             move = self.server_socket.recv(1024).decode('utf-8')
+    #             if move:
+    #                 print(f"Otrzymano ruch: {move}")
+    #                 return move
+    #             else:
+    #                 break
+    #         except OSError as e:
+    #             print(f"Blad podczas odbierania ruchu: {e}")
+    #             break
 
-    def send_move(self, move):
-        if not self.connected:
-            print("Brak połączenia z serwerem.")
-            return
-        try:
-            self.server_socket.send(move.encode('utf-8'))
-        except OSError as e:
-            print(f"Blad podczas wysylania ruchu: {e}")
+    # def send_move(self, move):
+    #     if not self.connected:
+    #         print("Brak połączenia z serwerem.")
+    #         return
+    #     try:
+    #         self.server_socket.send(move.encode('utf-8'))
+    #     except OSError as e:
+    #         print(f"Blad podczas wysylania ruchu: {e}")
 
 class ChessController:
     def __init__(self):
@@ -108,15 +108,16 @@ class ChessController:
         self.current_player = Player.HUMAN
         self.client = None
 
-    def set_client(self,client):
+    def set_client(self, client):
         self.client = client
 
-    def receive_move(self,move):
-        if self.move(move) == 1:
-            print("Gra zakonczona")
-        else:
-            if self.client:
-                self.client.send_move(move)
+    # def receive_move(self,move):
+    #     if self.move(move) == 1:
+    #         print("Gra zakonczona")
+    #     else:
+    #         if self.client:
+    #             self.client.send_move(move)
+
     def display(self):
         self.view.display_board(self.board)
 
@@ -165,8 +166,8 @@ class ChessController:
             if chess_move in self.board.legal_moves:
                 self.board.push(chess_move)
 
-                if self.client:
-                    self.client.send_move(move)
+                # if self.client:
+                #     self.client.send_move(move)
 
                 if self.board.is_checkmate():
                     self.view.display_message("Mate")
@@ -183,7 +184,7 @@ class ChessController:
 
     def play_game(self):
         self.filename = self.folder_path / f"game_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.txt"
-        # date_time = datetime.now().strftime('%d-%m-%Y_%H-%M-%S')
+
         while True:
             self.terminal_view.clear_terminal()
             self.display()
@@ -214,34 +215,67 @@ class ChessController:
 
                 self.current_player = Player.HUMAN
 
+    # def play_multiplayer(self):
+    #     self.filename = self.folder_path / f"game_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.txt"
+    #     self.current_player = Player.PLAYER_1
+    #
+    #     while True:
+    #         self.terminal_view.clear_terminal()
+    #         self.display()
+    #
+    #         if self.current_player == Player.PLAYER_1:
+    #             move = input("Enter your move: ")
+    #             if self.move(move) == 1:
+    #                 break
+    #             self.save_move(move)
+    #             if self.client:
+    #                 self.client.send_move(move)
+    #             self.current_player = Player.PLAYER_2
+    #         else:
+    #             print("Waiting for opponent's move...")
+    #             move = self.client.receive_moves()
+    #             if move is None:
+    #                 print("Nie ma ruchu od przeciwnika. Gra została zakończona.")
+    #                 break
+    #             if self.move(move) == 1:
+    #                 break
+    #             self.save_move(move)
+    #             self.current_player = Player.PLAYER_1
+
     def play_multiplayer(self):
-        self.filename = self.folder_path / f"game_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.txt"
+        data = self.client.server_socket.recv(1024)
+        if data.decode() == 'Oczekiwanie na przeciwnika.':
+            self.view.display_message('Oczekiwanie na przeciwnika.')
+
+        data = self.client.server_socket.recv(1024)
+        if data.decode() == 'Rozpoczynanie partii.':
+            self.view.display_message('Rozpoczynanie partii.')
 
         while True:
             self.terminal_view.clear_terminal()
             self.display()
 
-            if self.current_player == Player.PLAYER_1:
-                move = input("Enter your move: ")
-                if self.move(move) == 1:
-                    break
-                self.save_move(move)
-                if self.client:
-                    self.client.send_move(move)
-                self.current_player = Player.PLAYER_2
-            else:
-                print("Waiting for opponent's move...")
-                move = self.client.receive_moves()
-                if move is None:
-                    print("Nie ma ruchu od przeciwnika. Gra została zakończona.")
-                    break
-                if self.move(move) == 1:
-                    break
-                self.save_move(move)
-                self.current_player = Player.PLAYER_1
+            data = self.client.server_socket.recv(1024)
+            if data.decode() == 'Wprowadz swoj ruch: ':
+                move = input("Wprowadź swój ruch: ")
 
-    # def open_file(self, filename):
-    #     return open(filename, "a")
+                if self.move(move) == 1:
+                    break
+
+                self.client.server_socket.sendall(move.encode())
+
+            elif data.decode() == 'Oczekiwanie':
+                self.view.display_message('Oczekiwanie na ruch przeciwnika...')
+
+                data = self.client.server_socket.recv(1024)
+                move = data.decode().strip()
+
+                if move is None:
+                    self.view.display_message("Gra została zakończona.")
+                    break
+                if self.move(move) == 1:
+                    break
+
 
     def save_move(self, move):
         with open(self.filename, 'a') as f:
