@@ -6,12 +6,16 @@ from blessed import Terminal
 import os
 import msvcrt
 
+
 class ConsoleView:
     def __init__(self):
         self.console = Console()
 
     def display_board(self, board):
         self.console.print("")
+
+        eval = board.get_eval()
+        self.display_eval(eval)
 
         for i in range(8):
             colored_row = Text()
@@ -43,6 +47,23 @@ class ConsoleView:
         column_labels = "      a b c d e f g h"
         self.console.print("")
         self.console.print(column_labels)
+
+    def display_eval(self, eval_score):
+        bar_length = 15
+        max_eval = 10
+
+        eval = max(-max_eval, min(max_eval, eval_score))
+
+        # black_count = round((1 - ((eval + max_eval)) / (2 * max_eval)) * bar_length)
+
+        normalized_eval = eval / max_eval
+        black_count = int((1 - normalized_eval) / 2 * bar_length)
+
+        white_count = bar_length - black_count
+
+        bar = '■' * white_count + '□' * black_count
+
+        print(f"     |{bar}|")
 
     def display_message(self, message):
         self.console.print(message)

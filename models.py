@@ -1,12 +1,11 @@
 import chess
 import enum
+import requests
 
 
 class Player(enum.Enum):
     HUMAN = 0
     BOT = 1
-    PLAYER_1 = 2
-    PLAYER_2 = 3
 
 class Color(enum.Enum):
     WHITE = 0
@@ -41,3 +40,32 @@ chrs = {
 class CustomBoard(chess.Board):
     def __init__(self):
         super().__init__()
+        self.API_URL = 'https://chess-api.com/v1'
+
+    def get_eval(self):
+        params = {
+            'fen': self.fen(),
+            'depth': 1,
+            'maxThinkingTime': 1
+        }
+        # dodac obsluge bledow
+        response = requests.post(self.API_URL, json=params)
+
+        data = response.json()
+        eval = data['eval']
+
+        return eval
+
+    def get_bot_move(self, depth=4, maxThinkingTime=50):
+        params = {
+            'fen': self.fen(),
+            'depth': depth,
+            'maxThinkingTime': maxThinkingTime
+        }
+        # dodac obsluge bledow
+        response = requests.post(self.API_URL, json=params)
+
+        data = response.json()
+        move = data['move']
+
+        return move

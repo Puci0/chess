@@ -12,7 +12,6 @@ class ChessServer:
             print(f"Serwer szachowy uruchomiony na {host}:{port}")
 
         self.clients = []
-        # self.players = {'PLAYER_1': None, 'PLAYER_2': None}
         self.players = {}
         self.run()
 
@@ -63,7 +62,6 @@ class ChessServer:
                 # Wyślij ruch do drugiego gracza
                 self.players[next_player].sendall(move.encode())
                 # Powiadom obecnego gracza, że ruch został przekazany
-                # self.players[current_turn].send(b"Oczekiwanie na przeciwnika...")
 
                 # Zmiana tury
                 current_player = next_player
