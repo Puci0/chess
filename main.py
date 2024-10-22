@@ -1,13 +1,12 @@
 from controllers import ChessController, ChessClient
 
 
-def start_client(server_ip='35.159.41.166', server_port=12345):
+def start_client(server_ip='18.159.103.78', server_port=12345):
     client = ChessClient(server_ip, server_port)
     if not client.is_server_alive():
         print("Nie można połączyć się z serwerem. Upewnij się, że serwer jest uruchomiony.")
         return
 
-    # Inicjalizacja kontrolera i uruchomienie gry multiplayer
     controller = ChessController()
     controller.set_client(client)
     controller.play_multiplayer()

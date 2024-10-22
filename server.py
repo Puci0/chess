@@ -33,13 +33,19 @@ class ChessServer:
             self.clients.append(client_socket)
             if len(self.clients) == 2:
                 print("Obaj gracze są połączeni, gra może się rozpocząć.")
+
+                # wysylanie wiadomosci o flipowaniu planszy
+                self.players['PLAYER_1'].sendall(str(int(False)).encode())
+                self.players['PLAYER_2'].sendall(str(int(True)).encode())
+
                 time.sleep(1)
+
                 self.players['PLAYER_1'].sendall('Rozpoczynanie partii.'.encode())
                 self.players['PLAYER_2'].sendall('Rozpoczynanie partii.'.encode())
                 self.start_game()
 
     def start_game(self):
-        time.sleep(1)
+        time.sleep(2)
         current_player = 'PLAYER_1'
 
         while True:
@@ -48,7 +54,6 @@ class ChessServer:
                 next_player = 'PLAYER_2' if current_player == 'PLAYER_1' else 'PLAYER_1'
 
                 self.players[current_player].sendall('Wprowadz swoj ruch: '.encode())
-                time.sleep(1)
                 self.players[next_player].sendall('Oczekiwanie'.encode())
 
                 # Odbierz ruch od gracza, który jest aktualnie na ruchu
@@ -65,7 +70,6 @@ class ChessServer:
 
                 # Zmiana tury
                 current_player = next_player
-                time.sleep(1)
 
             except (ConnectionResetError, BrokenPipeError):
                 print(f"Połączenie z {current_player} zostało przerwane.")

@@ -46,21 +46,25 @@ class ChessClient:
 
 class ChessController:
     def __init__(self):
-        self.board = CustomBoard()
+        self.board = None
         self.view = ConsoleView()
         self.terminal_view = TerminalView()
         self.white_castling = 0
         self.black_castling = 0
-        self.folder_path = (pathlib.Path(__file__).parent / 'chess_history').resolve()
-        self.folder_path.mkdir(exist_ok=True)
+
+        self.history_games_path = (pathlib.Path(__file__).parent / 'history').resolve()
+        self.history_games_path.mkdir(exist_ok=True)
+
+        self.bot_games_path = self.bot_games_path = self.history_games_path / 'bot_games'
+        self.bot_games_path.mkdir(exist_ok=True)
+
+        self.multi_games_path = self.history_games_path / 'multiplayer_games'
+        self.multi_games_path.mkdir(exist_ok=True)
         self.current_player = Player.HUMAN
         self.client = None
 
     def set_client(self, client):
         self.client = client
-
-    def display(self):
-        self.view.display_board(self.board)
 
     def move(self, move):
         try:
@@ -120,17 +124,29 @@ class ChessController:
             self.view.display_message("Illegal move. Game finished. \n")
             return 1
 
+    # def is_move_valid(self, move):
+    #     uci_move = chess.Move.from_uci(move)
+    #     san_move = self.board.san(uci_move)
+    #     if san_move in self.board.legal_moves:
+    #         return True
+    #     else:
+    #         return False
+
     def play_with_bot(self):
-        self.filename = self.folder_path / f"game_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.txt"
+        self.board = CustomBoard()
+        self.filename = self.bot_games_path / f"game_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.txt"
 
         while True:
             self.terminal_view.clear_terminal()
-            self.display()
+            self.view.display_board(self.board, flip=False)
+
             if self.current_player == Player.HUMAN:
                 # human playing
-                move = input("Enter a move: ")
+                move = self.view.enter_move()
+
                 if self.move(move) == 1:
                     break
+
                 self.save_move(move)
 
                 self.current_player = Player.BOT
@@ -146,28 +162,36 @@ class ChessController:
                 self.current_player = Player.HUMAN
 
     def play_multiplayer(self):
+        self.board = CustomBoard()
+        self.filename = self.multi_games_path / f"game_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.txt"
+
         data = self.client.receive_message()
         if data == 'Oczekiwanie na przeciwnika.':
             self.view.display_message('Oczekiwanie na przeciwnika.')
+
+        data = self.client.receive_message()
+        FLIP_BOARD = bool(int(data))
 
         data = self.client.receive_message()
         if data == 'Rozpoczynanie partii.':
             self.view.display_message('Rozpoczynanie partii.')
 
         while True:
-            self.terminal_view.clear_terminal()
-            self.display()
-
             data = self.client.receive_message()
+
+            self.terminal_view.clear_terminal()
+            self.view.display_board(self.board, FLIP_BOARD)
+
             if data == 'Wprowadz swoj ruch: ':
                 move = input("Wprowadź swój ruch: ")
 
                 if self.move(move) == 1:
                     break
 
+                self.save_move(move)
                 self.client.send_message(move)
 
-            elif data.decode() == 'Oczekiwanie':
+            elif data == 'Oczekiwanie':
                 self.view.display_message('Oczekiwanie na ruch przeciwnika...')
 
                 move = self.client.receive_message()
@@ -175,17 +199,20 @@ class ChessController:
                 if move is None:
                     self.view.display_message("Gra została zakończona.")
                     break
+
                 if self.move(move) == 1:
                     break
+                self.save_move(move)
 
 
     def save_move(self, move):
         with open(self.filename, 'a') as f:
             f.write(f"{move}\n")
 
+
     def display_history(self):
         self.terminal_view.clear_terminal()
-        self.terminal_view.navigate_files(self.folder_path, self)
+        self.terminal_view.navigate_files(self.bot_games_path, self.multi_games_path, self)
 
     def analise_game(self, file_path):
         with open(file_path, 'r') as f:
@@ -193,8 +220,8 @@ class ChessController:
 
         current_index = -1
         self.terminal_view.clear_terminal()
-        self.board = chess.Board()
-        self.display()
+        self.board = CustomBoard()
+        self.view.display_board(self.board)
 
         while True:
             key = self.terminal_view.get_user_input("Use 'd' to move forward, 'a' to move back, other key to quit: ")
@@ -203,18 +230,18 @@ class ChessController:
                 if current_index + 1 < len(self.moves):
                     current_index += 1
                     self.board.push_san(self.moves[current_index])
-                    self.display()
+                    self.view.display_board(self.board)
                 else:
-                    self.display()
+                    self.view.display_board(self.board)
                     self.view.display_message("!!! That was last move. !!!\n")
             elif key == 'a':
                 self.terminal_view.clear_terminal()
                 if current_index - 1 >= 0:
                     current_index -= 1
                     self.board.pop()
-                    self.display()
+                    self.view.display_board(self.board)
                 else:
-                    self.display()
+                    self.view.display_board(self.board)
                     self.view.display_message("!!! That was first move !!!\n")
             else:
                 self.terminal_view.clear_terminal()
@@ -224,9 +251,9 @@ class ChessController:
         with open(file_path, 'r') as f:
             self.moves = [move.strip() for move in f.readlines()]
         self.board = chess.Board()
-        self.display()
+        self.view.display_board(self.board)
         for move in self.moves:
             self.board.push_san(move)
             self.terminal_view.clear_terminal()
-            self.display()
+            self.view.display_board(self.board)
             time.sleep(1)

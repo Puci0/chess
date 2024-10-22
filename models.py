@@ -38,8 +38,8 @@ chrs = {
 }
 
 class CustomBoard(chess.Board):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.API_URL = 'https://chess-api.com/v1'
 
     def get_eval(self):
