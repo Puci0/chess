@@ -41,6 +41,7 @@ class CustomBoard(chess.Board):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.API_URL = 'https://chess-api.com/v1'
+        self.__eval = 0
 
     def get_eval(self):
         params = {
@@ -52,7 +53,12 @@ class CustomBoard(chess.Board):
         response = requests.post(self.API_URL, json=params)
 
         data = response.json()
-        eval = data['eval']
+
+        try:
+            eval = data['eval']
+            self.__eval = eval
+        except KeyError:
+            eval = self.__eval
 
         return eval
 

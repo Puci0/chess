@@ -89,44 +89,40 @@ class ChessController:
         self.current_player = Player.HUMAN
         self.filename = self.bot_games_path / f"game_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.txt"
 
-        while True:
-            self.terminal_view.clear_terminal()
-            self.view.display_board(self.board, flip=False)
+        self.view.display_board(self.board, flip=False)
 
+        while True:
             if self.current_player == Player.HUMAN:
                 # Human playing
                 move = self.view.enter_move()
                 if self.board.is_move_valid(move):
                     result = self.board.move(move)
-                    if result == "Mate":
-                        self.view.display_message("Checkmate! You win!")
-                        time.sleep(2)
-                        break
-                    elif result == "Stalemate":
-                        self.view.display_message("Stalemate! It's a draw.")
-                        time.sleep(2)
-                        break
-                    self.save_move(move)
-                    self.current_player = Player.BOT
                 else:
                     time.sleep(1)
                     continue
 
             else:
                 # Bot playing
-                print('Bot is thinking...')
+                self.view.display_message('Bot is thinking...')
                 move = self.board.get_bot_move(depth=4, maxThinkingTime=50)
                 result = self.board.move(move)
-                if result == "Mate":
-                    self.view.display_message("Checkmate! Bot wins!")
-                    time.sleep(2)
-                    break
-                elif result == "Stalemate":
-                    self.view.display_message("Stalemate! It's a draw.")
-                    time.sleep(2)
-                    break
-                self.save_move(move)
-                self.current_player = Player.HUMAN
+
+            self.view.display_board(self.board, flip=False)
+            self.save_move(move)
+
+            if result == "Mate":
+                message = 'You win!' if self.current_player == Player.HUMAN else 'Bot wins!'
+                message = 'Checkmate! ' + message
+                self.view.display_message(message)
+                time.sleep(2)
+                break
+            elif result == "Stalemate":
+                self.view.display_message("Stalemate! It's a draw.")
+                time.sleep(2)
+                break
+
+            self.current_player = Player.BOT if self.current_player == Player.HUMAN else Player.HUMAN
+
 
     def play_multiplayer(self):
         self.board = CustomBoard()
@@ -152,7 +148,6 @@ class ChessController:
         while True:
             data = self.client.receive_message()
 
-            self.terminal_view.clear_terminal()
             self.view.display_board(self.board, FLIP_BOARD)
 
             if data == 'Wprowadz swoj ruch: ':
@@ -210,14 +205,12 @@ class ChessController:
             self.moves = [move.strip() for move in f.readlines()]
 
         current_index = -1
-        self.terminal_view.clear_terminal()
         self.board = CustomBoard()
         self.view.display_board(self.board)
 
         while True:
             key = self.terminal_view.get_user_input("Use 'd' to move forward, 'a' to move back, other key to quit: ")
             if key == 'd':
-                self.terminal_view.clear_terminal()
                 if current_index + 1 < len(self.moves):
                     current_index += 1
                     self.board.push_san(self.moves[current_index])
@@ -235,7 +228,7 @@ class ChessController:
                     self.view.display_board(self.board)
                     self.view.display_message("!!! That was first move !!!\n")
             else:
-                self.terminal_view.clear_terminal()
+                self.view.clear_terminal()
                 break
 
     def automatic_game(self, file_path):
@@ -245,7 +238,6 @@ class ChessController:
         self.view.display_board(self.board)
         for move in self.moves:
             self.board.push_san(move)
-            self.terminal_view.clear_terminal()
             self.view.display_board(self.board)
             time.sleep(1)
 

@@ -20,6 +20,7 @@ class ConsoleView:
         return move
 
     def display_board(self, board, flip: bool=False):
+        self.clear_terminal()
         self.console.print("")
 
         eval = board.get_eval()
@@ -85,6 +86,10 @@ class ConsoleView:
 
     def display_message(self, message):
         self.console.print(message)
+
+    def clear_terminal(self):
+        os.system('cls' if os.name == 'nt' else 'clear')
+
 
 class TerminalView:
     def __init__(self):
