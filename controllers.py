@@ -1,5 +1,4 @@
 import time
-import chess
 from datetime import datetime
 from views import ConsoleView, TerminalView
 from models import Player, CustomBoard
@@ -8,13 +7,13 @@ import socket
 
 
 class ChessClient:
-    def __init__(self, server_ip, server_port):
+    def __init__(self, server_ip='3.75.88.7', server_port=12345):
         self.server_ip = server_ip
         self.server_port = server_port
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connected = False
 
-    def is_server_alive(self):
+    def connect(self):
         try:
             self.server_socket.connect((self.server_ip, self.server_port))
             self.connected = True
@@ -22,6 +21,11 @@ class ChessClient:
         except (socket.error, ConnectionRefusedError):
             self.connected = False
             return False
+
+    def close(self):
+        if self.connected:
+            self.server_socket.close()
+            self.connected = False
 
     def receive_message(self):
         if not self.connected:
@@ -46,9 +50,12 @@ class ChessClient:
 
 class ChessController:
     def __init__(self):
-        self.board = None
         self.view = ConsoleView()
         self.terminal_view = TerminalView()
+        self.client = ChessClient()
+        self.board = None
+
+        self.current_player = None
 
         self.history_games_path = (pathlib.Path(__file__).parent / 'history').resolve()
         self.history_games_path.mkdir(exist_ok=True)
@@ -58,14 +65,29 @@ class ChessController:
 
         self.multi_games_path = self.history_games_path / 'multiplayer_games'
         self.multi_games_path.mkdir(exist_ok=True)
-        self.current_player = Player.HUMAN
-        self.client = None
 
-    def set_client(self, client):
-        self.client = client
+        self.filename = None
+
+    def init_menu(self):
+        while True:
+            choice = self.view.get_menu_choice()
+
+            if choice == "play with bot":
+                self.play_with_bot()
+
+            elif choice == "display history":
+                self.display_history()
+
+            elif choice == "play with another player":
+                self.play_multiplayer()
+
+            elif choice == "q":
+                break
+
 
     def play_with_bot(self):
         self.board = CustomBoard()
+        self.current_player = Player.HUMAN
         self.filename = self.bot_games_path / f"game_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.txt"
 
         while True:
@@ -95,6 +117,12 @@ class ChessController:
         self.board = CustomBoard()
         self.filename = self.multi_games_path / f"game_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.txt"
 
+        if not self.client.connect():
+            self.view.display_message("Nie można połączyć się z serwerem. Upewnij się, że serwer jest uruchomiony.")
+            return
+
+        self.terminal_view.clear_terminal()
+
         data = self.client.receive_message()
         if data == 'Oczekiwanie na przeciwnika.':
             self.view.display_message('Oczekiwanie na przeciwnika.')
@@ -113,7 +141,7 @@ class ChessController:
             self.view.display_board(self.board, FLIP_BOARD)
 
             if data == 'Wprowadz swoj ruch: ':
-                move = input("Wprowadź swój ruch: ")
+                move = self.view.enter_move()
 
                 if self.board.is_move_valid(move):
                     self.board.move(move)
@@ -133,12 +161,8 @@ class ChessController:
                     self.view.display_message("Gra została zakończona.")
                     break
 
-                if self.board.is_move_valid(move):
-                    self.board.move(move)
-                    self.save_move(move)
-                else:
-                    time.sleep(1)
-                    continue
+                self.board.move(move)
+                self.save_move(move)
 
 
     def save_move(self, move):
@@ -186,10 +210,12 @@ class ChessController:
     def automatic_game(self, file_path):
         with open(file_path, 'r') as f:
             self.moves = [move.strip() for move in f.readlines()]
-        self.board = chess.Board()
+        self.board = CustomBoard()
         self.view.display_board(self.board)
         for move in self.moves:
             self.board.push_san(move)
             self.terminal_view.clear_terminal()
             self.view.display_board(self.board)
             time.sleep(1)
+
+        self.terminal_view.get_user_input("Press any key to quit...")

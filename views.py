@@ -11,6 +11,10 @@ class ConsoleView:
     def __init__(self):
         self.console = Console()
 
+    def get_menu_choice(self):
+        choice = input("\nChoose what you want:\n 'play with bot','play with another player', 'display history', 'q': ")
+        return choice
+
     def enter_move(self):
         move = input("Enter a move: ")
         return move
