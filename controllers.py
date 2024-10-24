@@ -84,7 +84,6 @@ class ChessController:
             elif choice == "q":
                 break
 
-
     def play_with_bot(self):
         self.board = CustomBoard()
         self.current_player = Player.HUMAN
@@ -95,10 +94,18 @@ class ChessController:
             self.view.display_board(self.board, flip=False)
 
             if self.current_player == Player.HUMAN:
-                # human playing
+                # Human playing
                 move = self.view.enter_move()
                 if self.board.is_move_valid(move):
-                    self.board.move(move)
+                    result = self.board.move(move)
+                    if result == "Mate":
+                        self.view.display_message("Checkmate! You win!")
+                        time.sleep(2)
+                        break
+                    elif result == "Stalemate":
+                        self.view.display_message("Stalemate! It's a draw.")
+                        time.sleep(2)
+                        break
                     self.save_move(move)
                     self.current_player = Player.BOT
                 else:
@@ -106,10 +113,18 @@ class ChessController:
                     continue
 
             else:
-                # bot playing
+                # Bot playing
                 print('Bot is thinking...')
                 move = self.board.get_bot_move(depth=4, maxThinkingTime=50)
-                self.board.move(move)
+                result = self.board.move(move)
+                if result == "Mate":
+                    self.view.display_message("Checkmate! Bot wins!")
+                    time.sleep(2)
+                    break
+                elif result == "Stalemate":
+                    self.view.display_message("Stalemate! It's a draw.")
+                    time.sleep(2)
+                    break
                 self.save_move(move)
                 self.current_player = Player.HUMAN
 
@@ -144,8 +159,16 @@ class ChessController:
                 move = self.view.enter_move()
 
                 if self.board.is_move_valid(move):
-                    self.board.move(move)
+                    result = self.board.move(move)
                     self.save_move(move)
+                    if result == "Mate":
+                        self.view.display_message("Checkmate! You win!")
+                        time.sleep(2)
+                        break
+                    elif result == "Stalemate":
+                        self.view.display_message("Stalemate! It's a draw.")
+                        time.sleep(2)
+                        break
                 else:
                     time.sleep(1)
                     continue
@@ -163,6 +186,14 @@ class ChessController:
 
                 self.board.move(move)
                 self.save_move(move)
+                if result == "Mate":
+                    self.view.display_message("Checkmate! You win!")
+                    time.sleep(2)
+                    break
+                elif result == "Stalemate":
+                    self.view.display_message("Stalemate! It's a draw.")
+                    time.sleep(2)
+                    break
 
 
     def save_move(self, move):
