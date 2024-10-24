@@ -69,3 +69,23 @@ class CustomBoard(chess.Board):
         move = data['move']
 
         return move
+
+    def move(self, move):
+        chess_move = self.parse_san(move)
+        self.push(chess_move)
+        if self.is_checkmate():
+            return "Mate"
+        elif self.is_stalemate():
+            return "Stalemate"
+        else:
+            return True
+
+    def is_move_valid(self, move):
+        try:
+            chess_move = self.parse_san(move)
+            if chess_move in self.legal_moves:
+                return True
+        except ValueError:
+            pass
+        print("Illegal move. Try again.\n")
+        return False

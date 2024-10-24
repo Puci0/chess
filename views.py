@@ -105,7 +105,7 @@ class TerminalView:
                 else:
                     folder1_display = self.term.blue(f"  {files1[i]}     ")
             else:
-                folder1_display = " " * 40
+                folder1_display = " " * 35
 
             # Dla drugiej kolumny
             if i < len(files2):
@@ -116,7 +116,7 @@ class TerminalView:
             else:
                 folder2_display = ""
 
-            print(folder1_display.ljust(40) + folder2_display)
+            print(folder1_display + folder2_display)
 
         print(
             "\nPress W to go up, S to go down, Tab to switch column, Enter to open in analysis mode, R to run game with 1sec delay, Q to quit:")

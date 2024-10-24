@@ -49,8 +49,6 @@ class ChessController:
         self.board = None
         self.view = ConsoleView()
         self.terminal_view = TerminalView()
-        self.white_castling = 0
-        self.black_castling = 0
 
         self.history_games_path = (pathlib.Path(__file__).parent / 'history').resolve()
         self.history_games_path.mkdir(exist_ok=True)
@@ -66,72 +64,6 @@ class ChessController:
     def set_client(self, client):
         self.client = client
 
-    def move(self, move):
-        try:
-            if self.white_castling == 0:
-                if move.lower() in ["kg1"]:
-                    if chess.Move.from_uci("e1g1") in self.board.legal_moves:
-                        self.board.push(chess.Move.from_uci("e1g1"))
-                        self.white_castling = 1
-                        return 0
-                    else:
-                        self.view.display_message("Roszada nie jest legalna.")
-                        return 1
-
-                if move.lower() in ["kc1"]:
-                    if chess.Move.from_uci("e1c1") in self.board.legal_moves:
-                        self.board.push(chess.Move.from_uci("e1c1"))
-                        self.white_castling = 1
-                        return 0
-                    else:
-                        self.view.display_message("Roszada nie jest legalna.")
-                        return 1
-
-            if self.black_castling == 0:
-                if move.lower() in ["kg8"]:
-                    if chess.Move.from_uci("e8g8") in self.board.legal_moves:
-                        self.board.push(chess.Move.from_uci("e8g8"))
-                        self.black_castling = 1
-                        return 0
-                    else:
-                        self.view.display_message("Roszada nie jest legalna.")
-                        return 1
-
-                if move.lower() in ["kc8"]:
-                    if chess.Move.from_uci("e8c8") in self.board.legal_moves:
-                        self.board.push(chess.Move.from_uci("e8c8"))
-                        self.black_castling = 1
-                        return 0
-                    else:
-                        self.view.display_message("Roszada nie jest legalna.")
-                        return 1
-
-            chess_move = self.board.push_san(move)
-
-            if chess_move in self.board.legal_moves:
-                self.board.push(chess_move)
-
-                if self.board.is_checkmate():
-                    self.view.display_message("Mate")
-                    return 1
-                elif self.board.is_stalemate():
-                    self.view.display_message("Stalemate")
-                    return 1
-                else:
-                    return 0
-
-        except ValueError:
-            self.view.display_message("Illegal move. Game finished. \n")
-            return 1
-
-    # def is_move_valid(self, move):
-    #     uci_move = chess.Move.from_uci(move)
-    #     san_move = self.board.san(uci_move)
-    #     if san_move in self.board.legal_moves:
-    #         return True
-    #     else:
-    #         return False
-
     def play_with_bot(self):
         self.board = CustomBoard()
         self.filename = self.bot_games_path / f"game_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.txt"
@@ -143,22 +75,20 @@ class ChessController:
             if self.current_player == Player.HUMAN:
                 # human playing
                 move = self.view.enter_move()
+                if self.board.is_move_valid(move):
+                    self.board.move(move)
+                    self.save_move(move)
+                    self.current_player = Player.BOT
+                else:
+                    time.sleep(1)
+                    continue
 
-                if self.move(move) == 1:
-                    break
-
-                self.save_move(move)
-
-                self.current_player = Player.BOT
             else:
                 # bot playing
                 print('Bot is thinking...')
                 move = self.board.get_bot_move(depth=4, maxThinkingTime=50)
-
-                if self.move(move) == 1:
-                    break
+                self.board.move(move)
                 self.save_move(move)
-
                 self.current_player = Player.HUMAN
 
     def play_multiplayer(self):
@@ -185,10 +115,13 @@ class ChessController:
             if data == 'Wprowadz swoj ruch: ':
                 move = input("Wprowadź swój ruch: ")
 
-                if self.move(move) == 1:
-                    break
+                if self.board.is_move_valid(move):
+                    self.board.move(move)
+                    self.save_move(move)
+                else:
+                    time.sleep(1)
+                    continue
 
-                self.save_move(move)
                 self.client.send_message(move)
 
             elif data == 'Oczekiwanie':
@@ -200,9 +133,12 @@ class ChessController:
                     self.view.display_message("Gra została zakończona.")
                     break
 
-                if self.move(move) == 1:
-                    break
-                self.save_move(move)
+                if self.board.is_move_valid(move):
+                    self.board.move(move)
+                    self.save_move(move)
+                else:
+                    time.sleep(1)
+                    continue
 
 
     def save_move(self, move):

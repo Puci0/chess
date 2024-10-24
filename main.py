@@ -1,7 +1,7 @@
 from controllers import ChessController, ChessClient
 
 
-def start_client(server_ip='18.159.103.78', server_port=12345):
+def start_client(server_ip='3.75.88.7', server_port=12345):
     client = ChessClient(server_ip, server_port)
     if not client.is_server_alive():
         print("Nie można połączyć się z serwerem. Upewnij się, że serwer jest uruchomiony.")
