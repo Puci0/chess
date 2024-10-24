@@ -7,7 +7,7 @@ import socket
 
 
 class ChessClient:
-    def __init__(self, server_ip='3.75.88.7', server_port=12345):
+    def __init__(self, server_ip='3.76.10.33', server_port=12345):
         self.server_ip = server_ip
         self.server_port = server_port
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -98,7 +98,8 @@ class ChessController:
                 if self.board.is_move_valid(move):
                     result = self.board.move(move)
                 else:
-                    time.sleep(1)
+                    self.view.display_message('Illegal move, try again.')
+                    time.sleep(2)
                     continue
 
             else:
@@ -151,26 +152,19 @@ class ChessController:
             self.view.display_board(self.board, FLIP_BOARD)
 
             if data == 'Wprowadz swoj ruch: ':
-                move = self.view.enter_move()
+                self.current_player = Player.PLAYER_1
 
-                if self.board.is_move_valid(move):
-                    result = self.board.move(move)
-                    self.save_move(move)
-                    if result == "Mate":
-                        self.view.display_message("Checkmate! You win!")
-                        time.sleep(2)
+                while True:
+                    move = self.view.enter_move()
+                    if self.board.is_move_valid(move):
                         break
-                    elif result == "Stalemate":
-                        self.view.display_message("Stalemate! It's a draw.")
-                        time.sleep(2)
-                        break
-                else:
-                    time.sleep(1)
-                    continue
+                    self.view.display_message('Illegal move, try again.')
+                    time.sleep(2)
 
                 self.client.send_message(move)
 
             elif data == 'Oczekiwanie':
+                self.current_player = Player.PLAYER_2
                 self.view.display_message('Oczekiwanie na ruch przeciwnika...')
 
                 move = self.client.receive_message()
@@ -179,16 +173,18 @@ class ChessController:
                     self.view.display_message("Gra została zakończona.")
                     break
 
-                self.board.move(move)
-                self.save_move(move)
-                if result == "Mate":
-                    self.view.display_message("Checkmate! You win!")
-                    time.sleep(2)
-                    break
-                elif result == "Stalemate":
-                    self.view.display_message("Stalemate! It's a draw.")
-                    time.sleep(2)
-                    break
+            result = self.board.move(move)
+            self.save_move(move)
+            if result == "Mate":
+                message = 'You win!' if self.current_player == Player.PLAYER_1 else 'You lost!'
+                message = 'Checkmate! ' + message
+                self.view.display_message(message)
+                time.sleep(2)
+                break
+            elif result == "Stalemate":
+                self.view.display_message("Stalemate! It's a draw.")
+                time.sleep(2)
+                break
 
 
     def save_move(self, move):

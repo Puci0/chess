@@ -6,6 +6,8 @@ import requests
 class Player(enum.Enum):
     HUMAN = 0
     BOT = 1
+    PLAYER_1 = 2
+    PLAYER_2 = 3
 
 class Color(enum.Enum):
     WHITE = 0
@@ -93,5 +95,5 @@ class CustomBoard(chess.Board):
                 return True
         except ValueError:
             pass
-        print("Illegal move. Try again.\n")
         return False
+
