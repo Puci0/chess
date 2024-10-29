@@ -4,10 +4,16 @@ from views import ConsoleView, TerminalView
 from models import Player, CustomBoard
 import pathlib
 import socket
+from rich.console import Console
+from rich.text import Text
+import time
+import os
+import shutil
+import msvcrt
 
 
 class ChessClient:
-    def __init__(self, server_ip='54.93.129.240', server_port=12345):
+    def __init__(self, server_ip='3.70.132.27', server_port=12345):
         self.server_ip = server_ip
         self.server_port = server_port
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -69,20 +75,73 @@ class ChessController:
         self.filename = None
 
     def init_menu(self):
+        chess_text = [
+            " ██████╗██╗  ██╗███████╗███████╗███████╗",
+            "██╔════╝██║  ██║██╔════╝██╔════╝██╔════╝",
+            "██║     ███████║█████╗  ███████╗███████╗",
+            "██║     ██╔══██║██╔══╝  ╚════██║╚════██║",
+            "╚██████╗██║  ██║███████╗███████║███████║",
+            " ╚═════╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝",
+            "                                        "
+        ]
+
+        king = [
+            "   .::.                                                                                                     .::.    ",
+            "   _::_                                                                                                     _::_    ",
+            " _/____\_                                                        ()                                       _/____\_  ",
+            " \      /                                                      <~~~~>                                     \      /  ",
+            "  \____/                                                        \__/                                       \____/   ",
+            "  (____)            __/'''\               ______               (____)                                      (____)   ",
+            "   |  |            ]___ o  }             (______)               |  |                                        |  |    ",
+            "   |__|                /   }              \ __ /                |  |                    __                  |__|    ",
+            "  /    \             /~    }               |  |                 |__|                   (  )                /    \\  ",
+            " (______)            \____/                |__|                /____\                   ||                (______)  ",
+            "(________)           /____\               /____\              (______)                 /__\              (________) ",
+            "/________\          (______)             (______)            (________)               (____)             /________\\",
+        ]
+
+        options = [
+            "play with bot",
+            "play multiplayer",
+            "display history",
+            "leave the game"
+        ]
+
+        selected_index = 0
+        console = Console()
+
+        os.system("color 8F")
+        os.system('mode con: cols=140 lines=33')
+        os.system('cls' if os.name == 'nt' else 'clear')
+        self.view.display_text_animated(2, console, chess_text, delay=0.02)
+        self.view.draw_table(console, selected_index)
+        self.view.display_text_animated(18, console, king, delay=0)
+
         while True:
-            choice = self.view.get_menu_choice()
-
-            if choice == "play with bot":
-                self.play_with_bot()
-
-            elif choice == "display history":
-                self.display_history()
-
-            elif choice == "play with another player":
-                self.play_multiplayer()
-
-            elif choice == "q":
-                break
+            key = msvcrt.getch()
+            if key == b'w' and selected_index > 0:
+                selected_index -= 1
+                console.clear()
+                for _ in chess_text:
+                    console.print(Text(" ", style="on gray25"))
+                self.view.draw_table(console, selected_index, True)
+            elif key == b's' and selected_index < len(options) - 1:
+                selected_index += 1
+                console.clear()
+                for _ in chess_text:
+                    console.print(Text(" ", style="on gray25"))
+                self.view.draw_table(console, selected_index, True)
+            elif key == b'\r':
+                if selected_index == 0:
+                    self.play_with_bot()
+                elif selected_index == 1:
+                    self.play_multiplayer()
+                elif selected_index == 2:
+                    self.display_history()
+                elif selected_index == 3:
+                    os.system("color 0F")
+                    os.system('cls' if os.name == 'nt' else 'clear')
+                    break
 
     def play_with_bot(self):
         self.board = CustomBoard()

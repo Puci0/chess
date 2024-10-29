@@ -18,34 +18,20 @@ chess_text = [
     " ╚═════╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝"
 ]
 
-# chess_text = [
-#     "                                            .::.",
-#     "                                            _::_",
-#     "                                            _/____\_",
-#     "                                            \      /"
-#     "                                           \____/"
-#     "                                           (____)"
-#     " ██████╗██╗  ██╗███████╗███████╗███████╗    |  |",
-#     "██╔════╝██║  ██║██╔════╝██╔════╝██╔════╝    |__|",
-#     "██║     ███████║█████╗  ███████╗███████╗   /    \\",
-#     "██║     ██╔══██║██╔══╝  ╚════██║╚════██║   (______)",
-#     "╚██████╗██║  ██║███████╗███████║███████║   (________)",
-#     " ╚═════╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝   /________\\"
-# ]
 
 king = [
-    ".::.                                                                          .::.",
-    "_::_                                                                          _::_",
-    "_/____\_                                                                      _/____\_",
-    "\      /                                                                      \      /",
-    "\____/                                                                        \____/",
-    "(____)                                                                        (____)",
-    "|  |                                                                          |  |",
-    "|__|                                                                          |__|",
-    "/    \                                                                        /    \\",
-    "(______)                                                                      (______)",
-    "(________)                                                                    (________)",
-    "/________\                                                                    /________\\"
+    "   .::.                                                                                                     .::.    ",
+    "   _::_                                                                                                     _::_    ",
+    " _/____\_                                                        ()                                       _/____\_  ",
+    " \      /                                                      <~~~~>                                     \      /  ",
+    "  \____/                                                        \__/                                       \____/   ",
+    "  (____)            __/'''\               ______               (____)                                      (____)   ",
+    "   |  |            ]___ o  }             (______)               |  |                                        |  |    ",
+    "   |__|                /   }              \ __ /                |  |                    __                  |__|    ",
+    "  /    \             /~    }               |  |                 |__|                   (  )                /    \\  ",
+    " (______)            \____/                |__|                /____\                   ||                (______)  ",
+    "(________)           /____\               /____\              (______)                 /__\              (________) ",
+    "/________\          (______)             (______)            (________)               (____)             /________\\"
 ]
 
 
@@ -63,20 +49,12 @@ def display_text_animated(n,console, text_lines, delay=0.05):
         console.print(styled_text)
         time.sleep(delay)
 
-os.system("color 8F")
-os.system('cls' if os.name == 'nt' else 'clear')
-
-
-display_text_animated(3,console, chess_text, delay=0.02)
-#display_text_animated(console, king, delay=0.02)
-
 options = [
     "play with bot",
     "play multiplayer",
     "display history",
     "leave the game"
 ]
-
 selected_index = 0
 highlight_style = "rgb(123,129,129) on gray100"
 
@@ -96,8 +74,12 @@ def draw_table(console, selected_index, margin=False):
         console.print("\n" * 2)
         console.print(table, justify="center", overflow="crop")
 
-draw_table(console, selected_index)
 
+
+os.system("color 8F")
+os.system('cls' if os.name == 'nt' else 'clear')
+display_text_animated(3,console, chess_text, delay=0.02)
+draw_table(console, selected_index)
 display_text_animated(18,console, king, delay=0)
 
 while True:

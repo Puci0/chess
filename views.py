@@ -1,15 +1,56 @@
 from rich.console import Console
 from rich.text import Text
+from rich.table import Table
+from rich import box
 from models import chrs, Color, Piece
 import chess
 from blessed import Terminal
 import os
 import msvcrt
-
+import shutil
+import time
 
 class ConsoleView:
     def __init__(self):
         self.console = Console()
+
+    def display_text_animated(self,n, console, text_lines, delay=0.05):
+        terminal_width = shutil.get_terminal_size().columns
+        max_length = max(len(line) for line in text_lines)
+        displayed_text = [""] * len(text_lines)
+
+        for char_index in range(max_length + 1):
+            for line_index, line in enumerate(text_lines):
+                centered_line = line[:char_index].center(terminal_width)
+                displayed_text[line_index] = centered_line
+            styled_text = Text("\n" * n + "\n".join(displayed_text), style="on gray25")
+            console.clear()
+            console.print(styled_text)
+            time.sleep(delay)
+
+    def draw_table(self, console, selected_index, margin=False):
+
+        highlight_style = "rgb(123,129,129) on gray100"
+        options = [
+            "play with bot",
+            "play multiplayer",
+            "display history",
+            "leave the game"
+        ]
+
+        table = Table(show_header=False, box=box.ROUNDED, show_lines=True)
+        table.add_column(justify="center")
+
+        for index, option in enumerate(options):
+            if index == selected_index:
+                table.add_row(Text(option, style=highlight_style))
+            else:
+                table.add_row(Text(option))
+        if margin == False:
+            console.print(table, justify="center", overflow="crop")
+        else:
+            console.print("\n")
+            console.print(table, justify="center", overflow="crop")
 
     def get_menu_choice(self):
         choice = input("\nChoose what you want:\n 'play with bot','play with another player', 'display history', 'q': ")
