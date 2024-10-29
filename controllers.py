@@ -7,7 +7,7 @@ import socket
 
 
 class ChessClient:
-    def __init__(self, server_ip='3.76.10.33', server_port=12345):
+    def __init__(self, server_ip='54.93.129.240', server_port=12345):
         self.server_ip = server_ip
         self.server_port = server_port
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

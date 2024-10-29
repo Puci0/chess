@@ -34,21 +34,22 @@ chess_text = [
 # ]
 
 king = [
-    "   .::.",
-    "   _::_",
-    "   _/____\_",
-    "   \      /",
-    "  \____/",
-    "  (____)",
-    "   |  |",
-    "   |__|",
-    "  /    \\",
-    "  (______)",
-    "  (________)",
-    "  /________\\"
+    ".::.                                                                          .::.",
+    "_::_                                                                          _::_",
+    "_/____\_                                                                      _/____\_",
+    "\      /                                                                      \      /",
+    "\____/                                                                        \____/",
+    "(____)                                                                        (____)",
+    "|  |                                                                          |  |",
+    "|__|                                                                          |__|",
+    "/    \                                                                        /    \\",
+    "(______)                                                                      (______)",
+    "(________)                                                                    (________)",
+    "/________\                                                                    /________\\"
 ]
 
-def display_text_animated(console, text_lines, delay=0.05):
+
+def display_text_animated(n,console, text_lines, delay=0.05):
     terminal_width = shutil.get_terminal_size().columns
     max_length = max(len(line) for line in text_lines)
     displayed_text = [""] * len(text_lines)
@@ -57,7 +58,7 @@ def display_text_animated(console, text_lines, delay=0.05):
         for line_index, line in enumerate(text_lines):
             centered_line = line[:char_index].center(terminal_width)
             displayed_text[line_index] = centered_line
-        styled_text = Text("\n" * 3 + "\n".join(displayed_text), style="on gray25")
+        styled_text = Text("\n" * n + "\n".join(displayed_text), style="on gray25")
         console.clear()
         console.print(styled_text)
         time.sleep(delay)
@@ -66,7 +67,7 @@ os.system("color 8F")
 os.system('cls' if os.name == 'nt' else 'clear')
 
 
-display_text_animated(console, chess_text, delay=0.02)
+display_text_animated(3,console, chess_text, delay=0.02)
 #display_text_animated(console, king, delay=0.02)
 
 options = [
@@ -96,6 +97,8 @@ def draw_table(console, selected_index, margin=False):
         console.print(table, justify="center", overflow="crop")
 
 draw_table(console, selected_index)
+
+display_text_animated(18,console, king, delay=0)
 
 while True:
     key = msvcrt.getch()
