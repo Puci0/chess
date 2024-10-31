@@ -74,6 +74,8 @@ class ChessController:
         self.filename = None
 
     def init_menu(self):
+        self.view.start()
+
         chess_text = [
             " ██████╗██╗  ██╗███████╗███████╗███████╗",
             "██╔════╝██║  ██║██╔════╝██╔════╝██╔════╝",
@@ -115,8 +117,6 @@ class ChessController:
         self.view.display_text_animated(2, console, chess_text, delay=0.02)
         self.view.draw_table(console, selected_index)
         self.view.display_text_animated(18, console, pieces, delay=0)
-
-        self.view.start()
 
         while True:
             key = msvcrt.getch()

@@ -15,6 +15,7 @@ import curses
 class ConsoleView:
     def __init__(self):
         self.screen = None
+        self.console = Console()
 
     def start(self):
         curses.wrapper(self._initialize_screen)
@@ -95,12 +96,10 @@ class ConsoleView:
             board = board.transform(chess.flip_horizontal).transform(chess.flip_vertical)
 
         for i in range(8):
-            # colored_row = ''
             if flip:
                 row_number = str(i + 1)
             else:
                 row_number = str(8 - i)
-            # colored_row += (f"  {row_number}   ")
             self.screen.addstr(f"  {row_number}   ")
 
             for j in range(8):
@@ -133,7 +132,6 @@ class ConsoleView:
                     else:
                         self.screen.addstr(chrs[(color, piece_type)], color_pair)
 
-            # self.screen.addstr(colored_row)
             self.screen.addstr('\n')
 
         column_labels = "a b c d e f g h"
@@ -171,7 +169,8 @@ class ConsoleView:
         return self.screen.getstr().decode()
 
     def clear_terminal(self):
-        self.screen.clear()
+        # self.screen.clear()
+        os.system('cls')
 
     def display_files(self, files1, files2, selected_index):
         highlight_style = "rgb(123,129,129) on gray100"
