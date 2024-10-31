@@ -23,14 +23,14 @@ class Piece(enum.Enum):
     QUEEN = enum.auto()
 
 chrs = {
-    (Color.WHITE, Piece.EMPTY): "\u00B7 ",
+    (Color.WHITE, Piece.EMPTY): "  ",
     (Color.WHITE, Piece.PAWN): "P ",
     (Color.WHITE, Piece.ROOK): "R ",
     (Color.WHITE, Piece.KNIGHT): "N ",
     (Color.WHITE, Piece.BISHOP): "B ",
     (Color.WHITE, Piece.KING): "K ",
     (Color.WHITE, Piece.QUEEN): "Q ",
-    (Color.BLACK, Piece.EMPTY): "\u00B7 ",
+    (Color.BLACK, Piece.EMPTY): "  ",
     (Color.BLACK, Piece.PAWN): "P ",
     (Color.BLACK, Piece.ROOK): "R ",
     (Color.BLACK, Piece.KNIGHT): "N ",
@@ -38,6 +38,23 @@ chrs = {
     (Color.BLACK, Piece.KING): "K ",
     (Color.BLACK, Piece.QUEEN): "Q ",
 }
+
+# chrs = {
+#     (Color.WHITE, Piece.EMPTY): "\u00B7 ",
+#     (Color.WHITE, Piece.PAWN): "\u2659 ",
+#     (Color.WHITE, Piece.ROOK): "\u2656 ",
+#     (Color.WHITE, Piece.KNIGHT): "\u2658 ",
+#     (Color.WHITE, Piece.BISHOP): "\u2657 ",
+#     (Color.WHITE, Piece.KING): "\u2654 ",
+#     (Color.WHITE, Piece.QUEEN): "\u2655 ",
+#     (Color.BLACK, Piece.EMPTY): "\u00B7 ",
+#     (Color.BLACK, Piece.PAWN): "\u265F ",
+#     (Color.BLACK, Piece.ROOK): "\u265C ",
+#     (Color.BLACK, Piece.KNIGHT): "\u265E ",
+#     (Color.BLACK, Piece.BISHOP): "\u265D ",
+#     (Color.BLACK, Piece.KING): "\u265A ",
+#     (Color.BLACK, Piece.QUEEN): "\u265B ",
+# }
 
 class CustomBoard(chess.Board):
     def __init__(self, *args, **kwargs):

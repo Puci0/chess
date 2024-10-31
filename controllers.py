@@ -69,6 +69,8 @@ class ChessController:
         self.filename = None
 
     def init_menu(self):
+        self.view.start()
+
         while True:
             choice = self.view.get_menu_choice()
 
@@ -84,6 +86,11 @@ class ChessController:
             elif choice == "q":
                 break
 
+    def enter_move(self):
+        self.view.display_board(self.board)
+        move = self.view.enter_move()
+        return move
+
     def play_with_bot(self):
         self.board = CustomBoard()
         self.current_player = Player.HUMAN
@@ -94,7 +101,7 @@ class ChessController:
         while True:
             if self.current_player == Player.HUMAN:
                 # Human playing
-                move = self.view.enter_move()
+                move = self.enter_move()
                 if self.board.is_move_valid(move):
                     result = self.board.move(move)
                 else:
@@ -106,6 +113,7 @@ class ChessController:
                 # Bot playing
                 self.view.display_message('Bot is thinking...')
                 move = self.board.get_bot_move(depth=4, maxThinkingTime=50)
+                time.sleep(1.5)
                 result = self.board.move(move)
 
             self.view.display_board(self.board, flip=False)
@@ -224,7 +232,7 @@ class ChessController:
                     self.view.display_board(self.board)
                     self.view.display_message("!!! That was first move !!!\n")
             else:
-                self.view.clear_terminal()
+                # self.view.clear_terminal()
                 break
 
     def automatic_game(self, file_path):
