@@ -22,14 +22,17 @@ class ConsoleView:
 
         color_1 = (210, 187, 151)
         color_2 = (181, 136, 99)
+        background_color = (118, 118, 118)
 
         curses.init_color(10, round(color_1[0] * 3.92), round(color_1[1] * 3.92), round(color_1[2] * 3.92))
         curses.init_color(11, round(color_2[0] * 3.92), round(color_2[1] * 3.92), round(color_2[2] * 3.92))
+        curses.init_color(12, round(background_color[0] * 3.92), round(background_color[1] * 3.92), round(background_color[2] * 3.92))
 
         curses.init_pair(20, curses.COLOR_BLACK, 10)
         curses.init_pair(21, curses.COLOR_BLACK, 11)
         curses.init_pair(22, curses.COLOR_WHITE, 10)
         curses.init_pair(23, curses.COLOR_WHITE, 11)
+        curses.init_pair(24, 12, 12)
 
         self.BLACK_ON_GREEN = curses.color_pair(20)
         self.BLACK_ON_YELLOW = curses.color_pair(21)
@@ -87,6 +90,7 @@ class ConsoleView:
 
     def display_board(self, board, flip: bool = False):
         self.screen.clear()
+        self.screen.bkgd(curses.color_pair(24))
         self.screen.addstr("\n")
 
         eval = board.get_eval()
@@ -214,9 +218,12 @@ class ConsoleView:
             if choice == b'q':
                 sys.exit(0)
 
-            if choice == b'\t':
-                # Switch columns
-                selected_index[0] = 2 if selected_index[0] == 1 else 1
+            if choice == b'a':
+                selected_index[0] = 1
+                selected_index[1] = 0
+
+            elif choice == b'd':
+                selected_index[0] = 2
                 selected_index[1] = 0
 
             if choice in [b'w', b's']:
@@ -254,7 +261,3 @@ class ConsoleView:
                     selected = files2[selected_index[1]]
                     new_path = os.path.join(current_directory2, selected)
                     controller.automatic_game(new_path)
-
-    def get_user_input(self, message):
-        print(message)
-        return msvcrt.getch().decode("utf-8")

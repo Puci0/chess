@@ -155,7 +155,6 @@ class ChessController:
         self.filename = self.bot_games_path / f"game_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.txt"
 
         self.view.display_board(self.board, flip=False)
-
         while True:
             if self.current_player == Player.HUMAN:
                 # Human playing
