@@ -4,11 +4,11 @@ from rich.table import Table
 from rich import box
 from models import chrs, Color, Piece
 import chess
-from blessed import Terminal
 import os
 import msvcrt
 import shutil
 import time
+import sys
 
 class ConsoleView:
     def __init__(self):
@@ -131,108 +131,80 @@ class ConsoleView:
     def clear_terminal(self):
         os.system('cls' if os.name == 'nt' else 'clear')
 
-
-class TerminalView:
-    def __init__(self):
-        self.term = Terminal()
-
-    def clear_terminal(self):
-        os.system('cls' if os.name == 'nt' else 'clear')
-
     def display_files(self, files1, files2, selected_index):
-        self.clear_terminal()
+        highlight_style = "rgb(123,129,129) on gray100"
 
-        print(self.term.bold("Game History Manager"))
-        print(f"\n{' ' * 2}{self.term.bold('Bot Games'):<45}{self.term.bold('Multiplayer Games')}")
+        table = Table(show_header=True)
+        table.add_column("BOT GAMES", width=42, header_style="bold white on #767676", justify="center")
+        table.add_column("MULTIPLAYER GAMES", width=42, header_style="bold white on #767676", justify="center")
 
         max_files = max(len(files1), len(files2))
-
         for i in range(max_files):
-            # Dla pierwszej kolumny
-            if i < len(files1):
-                if selected_index[0] == 1 and i == selected_index[1]:
-                    folder1_display = self.term.bold(self.term.white(f"> {files1[i]}     "))
-                else:
-                    folder1_display = self.term.blue(f"  {files1[i]}     ")
-            else:
-                folder1_display = " " * 35
+            folder1_display = (f">[{highlight_style}]{files1[i]}[/]"
+                               if selected_index[0] == 1 and i == selected_index[1]
+                               else f" {files1[i]}") if i < len(files1) else ""
 
-            # Dla drugiej kolumny
-            if i < len(files2):
-                if selected_index[0] == 2 and i == selected_index[1]:
-                    folder2_display = self.term.bold(self.term.white(f"> {files2[i]}"))
-                else:
-                    folder2_display = self.term.blue(f"  {files2[i]}")
-            else:
-                folder2_display = ""
+            folder2_display = (f"> [{highlight_style}]{files2[i]}[/]"
+                               if selected_index[0] == 2 and i == selected_index[1]
+                               else f"  {files2[i]}") if i < len(files2) else ""
 
-            print(folder1_display + folder2_display)
+            table.add_row(folder1_display, folder2_display)
 
-        print(
-            "\nPress W to go up, S to go down, Tab to switch column, Enter to open in analysis mode, R to run game with 1sec delay, Q to quit:")
+        self.console.print("\n" * 7)
+        self.console.print(table, justify="center")
+        self.console.print(
+            "\n[bold white on #767676] Press W to go up, S to go down, Tab to switch column, Enter to open in analysis mode, R to run game with 1sec delay, Q to quit:[/]")
 
     def navigate_files(self, folder1_path, folder2_path, controller):
         current_directory1 = folder1_path
         current_directory2 = folder2_path
 
-        selected_index = [1, 0]  # [kolumna, indeks pliku]
+        selected_index = [1, 0]
 
         while True:
             files1 = os.listdir(current_directory1)
             files2 = os.listdir(current_directory2)
 
-            num_files1 = len(files1)
-            num_files2 = len(files2)
-
+            self.console.clear()
             self.display_files(files1, files2, selected_index)
 
             choice = msvcrt.getch()
 
             if choice == b'q':
-                break
+                sys.exit(0)
 
             if choice == b'\t':
-                # Zmiana kolumny
+                # Switch columns
                 selected_index[0] = 2 if selected_index[0] == 1 else 1
                 selected_index[1] = 0
 
-            if choice == b'w':
-                # Ruch w górę
+            if choice in [b'w', b's']:
                 if selected_index[0] == 1:
-                    selected_index[1] = (selected_index[1] - 1) % num_files1
+                    if choice == b'w' and selected_index[1] > 0:
+                        selected_index[1] -= 1
+                    elif choice == b's' and selected_index[1] < len(files1) - 1:
+                        selected_index[1] += 1
                 else:
-                    selected_index[1] = (selected_index[1] - 1) % num_files2
-
-            elif choice == b's':
-                # Ruch w dół
-                if selected_index[0] == 1:
-                    selected_index[1] = (selected_index[1] + 1) % num_files1
-                else:
-                    selected_index[1] = (selected_index[1] + 1) % num_files2
+                    if choice == b'w' and selected_index[1] > 0:
+                        selected_index[1] -= 1
+                    elif choice == b's' and selected_index[1] < len(files2) - 1:
+                        selected_index[1] += 1
 
             elif choice == b'\r':
-                # Wybór pliku
                 if selected_index[0] == 1:
                     selected = files1[selected_index[1]]
                     new_path = os.path.join(current_directory1, selected)
-                    if os.path.isdir(new_path):
-                        current_directory1 = new_path
-                        selected_index[1] = 0
-                    elif os.path.isfile(new_path):
+                    if os.path.isfile(new_path):
                         controller.analise_game(new_path)
                         break
                 else:
                     selected = files2[selected_index[1]]
                     new_path = os.path.join(current_directory2, selected)
-                    if os.path.isdir(new_path):
-                        current_directory2 = new_path
-                        selected_index[1] = 0
-                    elif os.path.isfile(new_path):
+                    if os.path.isfile(new_path):
                         controller.analise_game(new_path)
                         break
 
             elif choice == b'r':
-                # Automatyczne uruchomienie gry
                 if selected_index[0] == 1:
                     selected = files1[selected_index[1]]
                     new_path = os.path.join(current_directory1, selected)

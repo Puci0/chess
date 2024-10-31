@@ -1,6 +1,6 @@
 import time
 from datetime import datetime
-from views import ConsoleView, TerminalView
+from views import ConsoleView
 from models import Player, CustomBoard
 import pathlib
 import socket
@@ -57,10 +57,9 @@ class ChessClient:
 class ChessController:
     def __init__(self):
         self.view = ConsoleView()
-        self.terminal_view = TerminalView()
         self.client = ChessClient()
         self.board = None
-
+        self.console_view = ConsoleView()
         self.current_player = None
 
         self.history_games_path = (pathlib.Path(__file__).parent / 'history').resolve()
@@ -85,7 +84,7 @@ class ChessController:
             "                                        "
         ]
 
-        king = [
+        pieces = [
             "   .::.                                                                                                     .::.    ",
             "   _::_                                                                                                     _::_    ",
             " _/____\_                                                        ()                                       _/____\_  ",
@@ -115,7 +114,7 @@ class ChessController:
         os.system('cls' if os.name == 'nt' else 'clear')
         self.view.display_text_animated(2, console, chess_text, delay=0.02)
         self.view.draw_table(console, selected_index)
-        self.view.display_text_animated(18, console, king, delay=0)
+        self.view.display_text_animated(18, console, pieces, delay=0)
 
         while True:
             key = msvcrt.getch()
@@ -192,7 +191,7 @@ class ChessController:
             self.view.display_message("Nie można połączyć się z serwerem. Upewnij się, że serwer jest uruchomiony.")
             return
 
-        self.terminal_view.clear_terminal()
+        self.console_view.clear_terminal()
 
         data = self.client.receive_message()
         if data == 'Oczekiwanie na przeciwnika.':
@@ -252,8 +251,18 @@ class ChessController:
 
 
     def display_history(self):
-        self.terminal_view.clear_terminal()
-        self.terminal_view.navigate_files(self.bot_games_path, self.multi_games_path, self)
+        self.console_view.clear_terminal()
+        full_text = [
+            "██████╗  █████╗ ███╗   ███╗███████╗      ██╗  ██╗██╗███████╗████████╗ ██████╗ ██████╗ ██╗   ██╗",
+            "██╔════╝ ██╔══██╗████╗ ████║██╔════╝     ██║  ██║██║██╔════╝╚══██╔══╝██╔═══██╗██╔══██╗╚██╗ ██╔╝",
+            "██║  ███╗███████║██╔████╔██║█████╗       ███████║██║███████╗   ██║   ██║   ██║██████╔╝ ╚████╔╝ ",
+            "██║   ██║██╔══██║██║╚██╔╝██║██╔══╝       ██╔══██║██║╚════██║   ██║   ██║   ██║██╔══██╗  ╚██╔╝  ",
+            "╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗     ██║  ██║██║███████║   ██║   ╚██████╔╝██║  ██║   ██║   ",
+            "╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝      ╚═╝  ╚═╝╚═╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ",
+        ]
+
+        self.console_view.display_text_animated(1, self.console_view.console, full_text, delay=0)
+        self.console_view.navigate_files(self.bot_games_path, self.multi_games_path, self)
 
     def analise_game(self, file_path):
         with open(file_path, 'r') as f:
@@ -264,7 +273,7 @@ class ChessController:
         self.view.display_board(self.board)
 
         while True:
-            key = self.terminal_view.get_user_input("Use 'd' to move forward, 'a' to move back, other key to quit: ")
+            key = self.console_view.get_user_input("Use 'd' to move forward, 'a' to move back, other key to quit: ")
             if key == 'd':
                 if current_index + 1 < len(self.moves):
                     current_index += 1
@@ -274,7 +283,7 @@ class ChessController:
                     self.view.display_board(self.board)
                     self.view.display_message("!!! That was last move. !!!\n")
             elif key == 'a':
-                self.terminal_view.clear_terminal()
+                self.console_view.clear_terminal()
                 if current_index - 1 >= 0:
                     current_index -= 1
                     self.board.pop()
@@ -296,4 +305,4 @@ class ChessController:
             self.view.display_board(self.board)
             time.sleep(1)
 
-        self.terminal_view.get_user_input("Press any key to quit...")
+        self.console_view.get_user_input("Press any key to quit...")
