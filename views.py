@@ -72,6 +72,18 @@ class ConsoleView:
             console.print(styled_text)
             time.sleep(delay)
 
+    def display_text(self, n, console, text_lines):
+        terminal_width = shutil.get_terminal_size().columns
+        displayed_text = []
+
+        for line in text_lines:
+            centered_line = line.center(terminal_width)
+            displayed_text.append(centered_line)
+
+        styled_text = Text("\n" * n + "\n".join(displayed_text), style="on gray25")
+        console.clear()
+        console.print(styled_text)
+
     def draw_table(self, console, selected_index, margin=False):
 
         highlight_style = "rgb(123,129,129) on gray100"
@@ -175,7 +187,7 @@ class ConsoleView:
 
                 self.screen.addstr('\n')
 
-        self.screen.addstr("\n\n")
+        # self.screen.addstr("\n\n")
         self.screen.refresh()
 
     def display_eval(self, eval_score):

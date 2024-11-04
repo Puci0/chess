@@ -119,9 +119,9 @@ class ChessController:
         self.view.display_text_animated(18, console, pieces, delay=0)
 
         while True:
-            # self.view.display_text_animated(2, console, chess_text, delay=0)
-            # self.view.draw_table(console, selected_index)
-            # self.view.display_text_animated(18, console, pieces, delay=0)
+            self.view.display_text(2, console, chess_text)
+            self.view.draw_table(console, selected_index)
+            self.view.display_text(18, console, pieces)
 
             key = msvcrt.getch()
             if key == b'w' and selected_index > 0:
@@ -143,10 +143,12 @@ class ChessController:
                     self.play_multiplayer()
                 elif selected_index == 2:
                     self.display_history()
+                    self.view.clear_terminal()
                 elif selected_index == 3:
                     os.system("color 0F")
                     os.system('cls' if os.name == 'nt' else 'clear')
                     break
+
 
     def enter_move(self):
         self.view.display_board(self.board)
