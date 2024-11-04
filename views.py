@@ -116,6 +116,18 @@ class ConsoleView:
         move = self.get_user_input("Enter a move: ")
         return move
 
+    def display_message(self, message):
+        self.screen.addstr(" " * self.offset)
+        self.screen.addstr(message)
+        self.screen.refresh()
+
+    def get_user_input(self, prompt):
+        self.display_message(prompt)
+        return self.screen.getstr().decode()
+
+    def endwin(self):
+        curses.endwin()
+
     def display_board(self, board, flip: bool=False):
         self.screen.clear()
         self.screen.bkgd(curses.color_pair(24))
@@ -210,17 +222,10 @@ class ConsoleView:
             self.screen.addstr('\n')
         self.screen.addstr('\n')
 
-    def display_message(self, message):
-        self.screen.addstr(" " * self.offset)
-        self.screen.addstr(message)
-        self.screen.refresh()
-
-    def get_user_input(self, prompt):
-        self.display_message(prompt)
-        return self.screen.getstr().decode()
+    def clear_curse(self):
+        self.screen.clear()
 
     def clear_terminal(self):
-        # self.screen.clear()
         os.system('cls')
 
     def display_files(self, files1, files2, selected_index):
@@ -289,22 +294,19 @@ class ConsoleView:
                 if selected_index[0] == 1:
                     selected = files1[selected_index[1]]
                     new_path = os.path.join(current_directory1, selected)
-                    if os.path.isfile(new_path):
-                        controller.analise_game(new_path)
-                        break
                 else:
                     selected = files2[selected_index[1]]
                     new_path = os.path.join(current_directory2, selected)
-                    if os.path.isfile(new_path):
-                        controller.analise_game(new_path)
-                        break
+
+                if os.path.isfile(new_path):
+                    controller.analise_game(new_path)
 
             elif choice == b'r':
                 if selected_index[0] == 1:
                     selected = files1[selected_index[1]]
                     new_path = os.path.join(current_directory1, selected)
-                    controller.automatic_game(new_path)
                 else:
                     selected = files2[selected_index[1]]
                     new_path = os.path.join(current_directory2, selected)
-                    controller.automatic_game(new_path)
+
+                controller.automatic_game(new_path)

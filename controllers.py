@@ -10,6 +10,7 @@ import time
 import os
 import shutil
 import msvcrt
+import curses
 
 
 class ChessClient:
@@ -59,7 +60,7 @@ class ChessController:
         self.view = ConsoleView()
         self.client = ChessClient()
         self.board = None
-        self.console_view = ConsoleView()
+        # self.console_view = ConsoleView()
         self.current_player = None
 
         self.history_games_path = (pathlib.Path(__file__).parent / 'history').resolve()
@@ -151,7 +152,7 @@ class ChessController:
 
 
     def enter_move(self):
-        self.view.display_board(self.board)
+        # self.view.display_board(self.board)
         move = self.view.enter_move()
         return move
 
@@ -160,16 +161,26 @@ class ChessController:
         self.current_player = Player.HUMAN
         self.filename = self.bot_games_path / f"game_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.txt"
 
-        self.view.display_board(self.board, flip=False)
+        self.view.display_board(self.board)
         while True:
             if self.current_player == Player.HUMAN:
                 # Human playing
                 move = self.enter_move()
+
+                if move.strip().lower() == 'ff':
+                    # self.view.clear_curse()
+                    self.view.display_board(self.board)
+                    self.view.display_message('Surrender! Press any key to continue...')
+                    msvcrt.getch()
+                    self.view.endwin()
+                    return
+
                 if self.board.is_move_valid(move):
                     result = self.board.move(move)
                 else:
-                    self.view.display_message('Illegal move, try again.')
-                    time.sleep(2)
+                    self.view.display_board(self.board)
+                    self.view.display_message('Illegal move, try again.\n')
+                    # time.sleep(2)
                     continue
 
             else:
@@ -204,7 +215,7 @@ class ChessController:
             self.view.display_message("Nie można połączyć się z serwerem. Upewnij się, że serwer jest uruchomiony.")
             return
 
-        self.console_view.clear_terminal()
+        self.view.clear_terminal()
 
         data = self.client.receive_message()
         if data == 'Oczekiwanie na przeciwnika.':
@@ -264,7 +275,7 @@ class ChessController:
 
 
     def display_history(self):
-        self.console_view.clear_terminal()
+        self.view.clear_terminal()
         full_text = [
             "██████╗  █████╗ ███╗   ███╗███████╗      ██╗  ██╗██╗███████╗████████╗ ██████╗ ██████╗ ██╗   ██╗",
             "██╔════╝ ██╔══██╗████╗ ████║██╔════╝     ██║  ██║██║██╔════╝╚══██╔══╝██╔═══██╗██╔══██╗╚██╗ ██╔╝",
@@ -274,8 +285,8 @@ class ChessController:
             "╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝      ╚═╝  ╚═╝╚═╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ",
         ]
 
-        self.console_view.display_text_animated(1, self.console_view.console, full_text, delay=0)
-        self.console_view.navigate_files(self.bot_games_path, self.multi_games_path, self)
+        self.view.display_text_animated(1, self.view.console, full_text, delay=0)
+        self.view.navigate_files(self.bot_games_path, self.multi_games_path, self)
 
     def analise_game(self, file_path):
         with open(file_path, 'r') as f:
@@ -286,7 +297,7 @@ class ChessController:
         self.view.display_board(self.board)
 
         while True:
-            key = self.console_view.get_user_input("Use 'd' to move forward, 'a' to move back, other key to quit: ")
+            key = self.view.get_user_input("Use 'd' to move forward, 'a' to move back, other key to quit: ")
             if key == 'd':
                 if current_index + 1 < len(self.moves):
                     current_index += 1
@@ -296,7 +307,6 @@ class ChessController:
                     self.view.display_board(self.board)
                     self.view.display_message("!!! That was last move. !!!\n")
             elif key == 'a':
-                self.console_view.clear_terminal()
                 if current_index - 1 >= 0:
                     current_index -= 1
                     self.board.pop()
@@ -305,7 +315,7 @@ class ChessController:
                     self.view.display_board(self.board)
                     self.view.display_message("!!! That was first move !!!\n")
             else:
-                # self.view.clear_terminal()
+                self.view.endwin()
                 break
 
     def automatic_game(self, file_path):
@@ -314,8 +324,11 @@ class ChessController:
         self.board = CustomBoard()
         self.view.display_board(self.board)
         for move in self.moves:
+            time.sleep(1)
             self.board.push_san(move)
             self.view.display_board(self.board)
-            time.sleep(1)
 
-        self.console_view.get_user_input("Press any key to quit...")
+
+        self.view.display_message("Press any key to continue...")
+        msvcrt.getch()
+        self.view.endwin()
