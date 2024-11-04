@@ -21,9 +21,10 @@ class ConsoleView:
     def start(self):
         curses.wrapper(self._initialize_screen)
 
-        color_1 = (210, 187, 151)  # green
-        color_2 = (181, 136, 99)  # yellow
-        background_color = (118, 118, 118)
+        color_1 = (144, 140, 140)
+        color_2 = (112, 108, 100)
+        background_color = (61, 61, 59)
+        # background_color = (43, 28, 40)
 
         curses.init_color(10, round(color_1[0] * 3.92), round(color_1[1] * 3.92), round(color_1[2] * 3.92))
         curses.init_color(11, round(color_2[0] * 3.92), round(color_2[1] * 3.92), round(color_2[2] * 3.92))
@@ -223,6 +224,7 @@ class ConsoleView:
         os.system('cls')
 
     def display_files(self, files1, files2, selected_index):
+        terminal_width = shutil.get_terminal_size().columns
         highlight_style = "rgb(123,129,129) on gray100"
 
         table = Table(show_header=True)
@@ -243,7 +245,7 @@ class ConsoleView:
 
         self.console.print("\n" * 7)
         self.console.print(table, justify="center")
-        self.console.print("\n[bold white on #767676] Press W to go up, S to go down, Tab to switch column, Enter to open in analysis mode, R to run game with 1sec delay, Q to quit:[/]")
+        self.console.print("\n[bold white on #767676] Press W to go up, S to go down, Tab to switch column, Enter to open in analysis mode, R to run game with 1sec delay, Q to quit[/]", justify="center")
 
     def navigate_files(self, folder1_path, folder2_path, controller):
         current_directory1 = folder1_path

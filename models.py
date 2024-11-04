@@ -33,10 +33,10 @@ chrs = {
 ))).reshape((5, 11)),
     (Color.WHITE, Piece.PAWN): np.array(list((
     "           "
-    "    ( )    "
-    "    ) (    "
-    "   (   )   "
-    "  [_____]  "
+    "    (#)    "
+    "    )#(    "
+    "   (###)   "
+    "  [#####]  "
 ))).reshape((5, 11)),
     (Color.WHITE, Piece.ROOK): np.array(list((
     "   [`'`]   "
