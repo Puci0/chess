@@ -107,12 +107,12 @@ class ConsoleView:
             else:
                 row_number = str(8 - row_index)
 
-            for i in range(6):
+            for i in range(5):
                 self.screen.addstr(f"  {row_number}   ")
 
                 for column_index in range(8):
 
-                    for j in range(12):
+                    for j in range(11):
                         piece = board.piece_at(chess.square(column_index, 7 - row_index))
 
                         is_white_square = (row_index + column_index) % 2 == 0
