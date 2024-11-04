@@ -21,12 +21,12 @@ class ConsoleView:
     def start(self):
         curses.wrapper(self._initialize_screen)
 
-        color_1 = (210, 187, 151)
-        color_2 = (181, 136, 99)
+        color_1 = (210, 187, 151) # green
+        color_2 = (181, 136, 99) # yellow
         background_color = (118, 118, 118)
 
-        curses.init_color(10, round(color_1[0] * 3.92), round(color_1[1] * 3.92), round(color_1[2] * 3.92))
-        curses.init_color(11, round(color_2[0] * 3.92), round(color_2[1] * 3.92), round(color_2[2] * 3.92))
+        curses.init_color(10, round(color_1[0] * 3.92), round(color_1[1] * 3.92), round(color_1[2] * 3.92)) # green
+        curses.init_color(11, round(color_2[0] * 3.92), round(color_2[1] * 3.92), round(color_2[2] * 3.92)) # yellow
         curses.init_color(12, round(background_color[0] * 3.92), round(background_color[1] * 3.92), round(background_color[2] * 3.92))
 
         curses.init_pair(20, curses.COLOR_BLACK, 10)
@@ -34,11 +34,15 @@ class ConsoleView:
         curses.init_pair(22, curses.COLOR_WHITE, 10)
         curses.init_pair(23, curses.COLOR_WHITE, 11)
         curses.init_pair(24, 12, 12)
+        curses.init_pair(25, 10, 11)
+        curses.init_pair(26, 11, 10)
 
         self.BLACK_ON_GREEN = curses.color_pair(20)
         self.BLACK_ON_YELLOW = curses.color_pair(21)
         self.WHITE_ON_GREEN = curses.color_pair(22)
         self.WHITE_ON_YELLOW = curses.color_pair(23)
+        self.GREEN_ON_YELLOW = curses.color_pair(25)
+        self.YELLOW_ON_GREEN = curses.color_pair(26)
 
     def _initialize_screen(self, screen):
         self.screen = screen
@@ -91,14 +95,17 @@ class ConsoleView:
 
     def display_board(self, board, flip: bool = False):
         self.screen.clear()
-        self.screen.bkgd(curses.color_pair(24))
+        # self.screen.bkgd(curses.color_pair(24))
         self.screen.addstr("\n")
 
         eval = board.get_eval()
         self.display_eval(eval)
 
+        column_labels = "abcdefgh"
+
         if flip:
             board = board.transform(chess.flip_horizontal).transform(chess.flip_vertical)
+            column_labels = column_labels[::-1]
 
 
         for row_index in range(8):
@@ -107,12 +114,22 @@ class ConsoleView:
             else:
                 row_number = str(8 - row_index)
 
-            for i in range(6):
-                self.screen.addstr(f"  {row_number}   ")
-
+            for i in range(5):
                 for column_index in range(8):
 
-                    for j in range(12):
+                    for j in range(11):
+                        is_white_square = (row_index + column_index) % 2 == 0
+
+                        if column_index==0 and i==0 and j==0:
+                            color_pair = self.YELLOW_ON_GREEN if is_white_square else self.GREEN_ON_YELLOW
+                            self.screen.addstr(str(row_index+1), color_pair | curses.A_BOLD)
+                            continue
+
+                        if row_index==7 and i==4 and j==10:
+                            color_pair = self.YELLOW_ON_GREEN if is_white_square else self.GREEN_ON_YELLOW
+                            self.screen.addstr(column_labels[column_index], color_pair | curses.A_BOLD)
+                            continue
+
                         piece = board.piece_at(chess.square(column_index, 7 - row_index))
 
                         is_white_square = (row_index + column_index) % 2 == 0
@@ -144,12 +161,12 @@ class ConsoleView:
                 self.screen.addstr('\n')
 
 
-        column_labels = "a b c d e f g h"
-        if flip:
-            column_labels = column_labels[::-1]
-        column_labels = "      " + column_labels
-        self.screen.addstr("\n")
-        self.screen.addstr(column_labels)
+        # column_labels = "a b c d e f g h"
+        # if flip:
+        #     column_labels = column_labels[::-1]
+        # column_labels = "      " + column_labels
+        # self.screen.addstr("\n")
+        # self.screen.addstr(column_labels)
         self.screen.addstr("\n\n")
         self.screen.refresh()
 
@@ -168,7 +185,7 @@ class ConsoleView:
 
         bar = '■' * white_count + '□' * black_count
 
-        self.screen.addstr(f"     |{bar}|\n")
+        self.screen.addstr(f"|{bar}|\n")
 
     def display_message(self, message):
         self.screen.addstr(message)
