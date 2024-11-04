@@ -25,8 +25,8 @@ class ConsoleView:
         color_2 = (181, 136, 99) # yellow
         background_color = (118, 118, 118)
 
-        curses.init_color(10, round(color_1[0] * 3.92), round(color_1[1] * 3.92), round(color_1[2] * 3.92)) # green
-        curses.init_color(11, round(color_2[0] * 3.92), round(color_2[1] * 3.92), round(color_2[2] * 3.92)) # yellow
+        curses.init_color(10, round(color_1[0] * 3.92), round(color_1[1] * 3.92), round(color_1[2] * 3.92))
+        curses.init_color(11, round(color_2[0] * 3.92), round(color_2[1] * 3.92), round(color_2[2] * 3.92))
         curses.init_color(12, round(background_color[0] * 3.92), round(background_color[1] * 3.92), round(background_color[2] * 3.92))
 
         curses.init_pair(20, curses.COLOR_BLACK, 10)
