@@ -10,6 +10,7 @@ import shutil
 import time
 import sys
 import curses
+import numpy as np
 
 
 class ConsoleView:
@@ -99,44 +100,49 @@ class ConsoleView:
         if flip:
             board = board.transform(chess.flip_horizontal).transform(chess.flip_vertical)
 
-        for i in range(8):
+
+        for row_index in range(8):
             if flip:
-                row_number = str(i + 1)
+                row_number = str(row_index + 1)
             else:
-                row_number = str(8 - i)
-            self.screen.addstr(f"  {row_number}   ")
+                row_number = str(8 - row_index)
 
-            for j in range(8):
-                piece = board.piece_at(chess.square(j, 7 - i))
+            for i in range(6):
+                self.screen.addstr(f"  {row_number}   ")
 
-                is_white_square = (i + j) % 2 == 0
+                for column_index in range(8):
 
-                if is_white_square:
-                    color_pair = self.BLACK_ON_GREEN if piece and piece.color == chess.BLACK else self.WHITE_ON_GREEN
-                else:
-                    color_pair = self.BLACK_ON_YELLOW if piece and piece.color == chess.BLACK else self.WHITE_ON_YELLOW
+                    for j in range(12):
+                        piece = board.piece_at(chess.square(column_index, 7 - row_index))
 
-                print(color_pair)
+                        is_white_square = (row_index + column_index) % 2 == 0
 
-                if piece is None:
-                    self.screen.addstr(chrs[(Color.WHITE, Piece.EMPTY)], color_pair)
-                else:
-                    color = Color.WHITE if piece.color == chess.WHITE else Color.BLACK
-                    piece_type = {
-                        chess.PAWN: Piece.PAWN,
-                        chess.ROOK: Piece.ROOK,
-                        chess.KNIGHT: Piece.KNIGHT,
-                        chess.BISHOP: Piece.BISHOP,
-                        chess.QUEEN: Piece.QUEEN,
-                        chess.KING: Piece.KING,
-                    }[piece.piece_type]
+                        if is_white_square:
+                            color_pair = self.BLACK_ON_GREEN if piece and piece.color == chess.BLACK else self.WHITE_ON_GREEN
+                        else:
+                            color_pair = self.BLACK_ON_YELLOW if piece and piece.color == chess.BLACK else self.WHITE_ON_YELLOW
 
-                    if color == Color.WHITE:
-                        self.screen.addstr(chrs[(color, piece_type)], color_pair)
-                    else:
-                        self.screen.addstr(chrs[(color, piece_type)], color_pair)
 
-            self.screen.addstr('\n')
+                        if piece is None:
+                            self.screen.addstr(chrs[(Color.WHITE, Piece.EMPTY)][i, j], color_pair)
+                        else:
+                            color = Color.WHITE if piece.color == chess.WHITE else Color.BLACK
+                            piece_type = {
+                                chess.PAWN: Piece.PAWN,
+                                chess.ROOK: Piece.ROOK,
+                                chess.KNIGHT: Piece.KNIGHT,
+                                chess.BISHOP: Piece.BISHOP,
+                                chess.QUEEN: Piece.QUEEN,
+                                chess.KING: Piece.KING,
+                            }[piece.piece_type]
+
+                            if color == Color.WHITE:
+                                self.screen.addstr(chrs[(color, piece_type)][i, j], color_pair | curses.A_BOLD)
+                            else:
+                                self.screen.addstr(chrs[(color, piece_type)][i, j], color_pair)
+
+                self.screen.addstr('\n')
+
 
         column_labels = "a b c d e f g h"
         if flip:
@@ -197,8 +203,7 @@ class ConsoleView:
 
         self.console.print("\n" * 7)
         self.console.print(table, justify="center")
-        self.console.print(
-            "\n[bold white on #767676] Press W to go up, S to go down, Tab to switch column, Enter to open in analysis mode, R to run game with 1sec delay, Q to quit:[/]")
+        self.console.print("\n[bold white on #767676] Press W to go up, S to go down, Tab to switch column, Enter to open in analysis mode, R to run game with 1sec delay, Q to quit:[/]")
 
     def navigate_files(self, folder1_path, folder2_path, controller):
         current_directory1 = folder1_path
@@ -216,7 +221,7 @@ class ConsoleView:
             choice = msvcrt.getch()
 
             if choice == b'q':
-                sys.exit(0)
+                break
 
             if choice == b'a':
                 selected_index[0] = 1

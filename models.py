@@ -1,6 +1,7 @@
 import chess
 import enum
 import requests
+import numpy as np
 
 
 class Player(enum.Enum):
@@ -23,20 +24,118 @@ class Piece(enum.Enum):
     QUEEN = enum.auto()
 
 chrs = {
-    (Color.WHITE, Piece.EMPTY): "  ",
-    (Color.WHITE, Piece.PAWN): "P ",
-    (Color.WHITE, Piece.ROOK): "R ",
-    (Color.WHITE, Piece.KNIGHT): "N ",
-    (Color.WHITE, Piece.BISHOP): "B ",
-    (Color.WHITE, Piece.KING): "K ",
-    (Color.WHITE, Piece.QUEEN): "Q ",
-    (Color.BLACK, Piece.EMPTY): "  ",
-    (Color.BLACK, Piece.PAWN): "P ",
-    (Color.BLACK, Piece.ROOK): "R ",
-    (Color.BLACK, Piece.KNIGHT): "N ",
-    (Color.BLACK, Piece.BISHOP): "B ",
-    (Color.BLACK, Piece.KING): "K ",
-    (Color.BLACK, Piece.QUEEN): "Q ",
+    (Color.WHITE, Piece.EMPTY): np.array(list((
+    "            "
+    "            "
+    "            "
+    "            "
+    "            "
+    "            "
+))).reshape((6, 12)),
+    (Color.WHITE, Piece.PAWN): np.array(list((
+    "            "
+    "            "
+    "     ()     "
+    "     )(     "
+    "    (  )    "
+    "   [____]   "
+))).reshape((6, 12)),
+    (Color.WHITE, Piece.ROOK): np.array(list((
+    "            "
+    "   [`'`']   "
+    "    |::|    "
+    "    |::|    "
+    "    |::|    "
+    "   [____]   "
+))).reshape((6, 12)),
+    (Color.WHITE, Piece.KNIGHT): np.array(list((
+    "            "
+    "   _/|      "
+    "   // o\\    "
+    "   || ._)   "
+    "   //__\\    "
+    "   )___(    "
+))).reshape((6, 12)),
+    (Color.WHITE, Piece.BISHOP): np.array(list((
+    "            "
+    "      o     "
+    "     (^)    "
+    "    -=H=-   "
+    "     ] [    "
+    "    /___\   "
+))).reshape((6, 12)),
+    (Color.WHITE, Piece.KING): np.array(list((
+    "     ++     "
+    "    (  )    "
+    "    /  \\    "
+    "    |  |    "
+    "    [  ]    "
+    "   [____]   "
+))).reshape((6, 12)),
+    (Color.WHITE, Piece.QUEEN): np.array(list((
+    "     **     "
+    "    (  )    "
+    "    /  \\    "
+    "    |  |    "
+    "    [  ]    " 
+    "   [____]   "
+))).reshape((6, 12)),
+    (Color.BLACK, Piece.EMPTY): np.array(list((
+    "            "
+    "            "
+    "            "
+    "            "
+    "            "
+    "            "
+))).reshape((6, 12)),
+    (Color.BLACK, Piece.PAWN): np.array(list((
+    "            "
+    "            "
+    "     ()     "
+    "     )(     "
+    "    (  )    "
+    "   [____]   "
+))).reshape((6, 12)),
+    (Color.BLACK, Piece.ROOK): np.array(list((
+    "            "
+    "   [`'`']   "
+    "    |::|    "
+    "    |::|    "
+    "    |::|    "
+    "   [____]   "
+))).reshape((6, 12)),
+    (Color.BLACK, Piece.KNIGHT): np.array(list((
+    "            "
+    "   _/|      "
+    "   // o\\    "
+    "   || ._)   "
+    "   //__\\    "
+    "   )___(    "
+))).reshape((6, 12)),
+    (Color.BLACK, Piece.BISHOP): np.array(list((
+    "            "
+    "      o     "
+    "     (^)    "
+    "    -=H=-   "
+    "     ] [    "
+    "    /___\   "
+))).reshape((6, 12)),
+    (Color.BLACK, Piece.KING): np.array(list((
+    "     ++     "
+    "    (  )    "
+    "    /  \\    "
+    "    |  |    "
+    "    [  ]    "
+    "   [____]   "
+))).reshape((6, 12)),
+    (Color.BLACK, Piece.QUEEN): np.array(list((
+    "     **     "
+    "    (  )    "
+    "    /  \\    "
+    "    |  |    "
+    "    [  ]    " 
+    "   [____]   "
+))).reshape((6, 12)),
 }
 
 # chrs = {
