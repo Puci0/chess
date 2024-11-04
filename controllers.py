@@ -112,7 +112,7 @@ class ChessController:
         console = Console()
 
         os.system("color 8F")
-        os.system('mode con: cols=220 lines=60')
+        os.system('mode con: cols=180 lines=52')
         os.system('cls' if os.name == 'nt' else 'clear')
         self.view.display_text_animated(2, console, chess_text, delay=0.02)
         self.view.draw_table(console, selected_index)

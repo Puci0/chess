@@ -21,14 +21,18 @@ class ConsoleView:
     def start(self):
         curses.wrapper(self._initialize_screen)
 
-        color_1 = (210, 187, 151) # green
-        color_2 = (181, 136, 99) # yellow
+        color_1 = (210, 187, 151)  # green
+        color_2 = (181, 136, 99)  # yellow
         background_color = (118, 118, 118)
 
         curses.init_color(10, round(color_1[0] * 3.92), round(color_1[1] * 3.92), round(color_1[2] * 3.92))
         curses.init_color(11, round(color_2[0] * 3.92), round(color_2[1] * 3.92), round(color_2[2] * 3.92))
-        curses.init_color(12, round(background_color[0] * 3.92), round(background_color[1] * 3.92), round(background_color[2] * 3.92))
+        curses.init_color(12, round(background_color[0] * 3.92), round(background_color[1] * 3.92),
+                          round(background_color[2] * 3.92))
 
+        curses.init_pair(17, curses.COLOR_WHITE, 12)
+        curses.init_pair(18, curses.COLOR_WHITE, curses.COLOR_WHITE)
+        curses.init_pair(19, curses.COLOR_BLACK, curses.COLOR_BLACK)
         curses.init_pair(20, curses.COLOR_BLACK, 10)
         curses.init_pair(21, curses.COLOR_BLACK, 11)
         curses.init_pair(22, curses.COLOR_WHITE, 10)
@@ -37,6 +41,9 @@ class ConsoleView:
         curses.init_pair(25, 10, 11)
         curses.init_pair(26, 11, 10)
 
+        self.WHITE_ON_GRAY = curses.color_pair(17)
+        self.WHITE_ON_WHITE = curses.color_pair(18)
+        self.BLACK_ON_BLACK = curses.color_pair(19)
         self.BLACK_ON_GREEN = curses.color_pair(20)
         self.BLACK_ON_YELLOW = curses.color_pair(21)
         self.WHITE_ON_GREEN = curses.color_pair(22)
@@ -46,6 +53,10 @@ class ConsoleView:
 
     def _initialize_screen(self, screen):
         self.screen = screen
+        rows, cols = self.screen.getmaxyx()
+        board_width = 8 * 11
+        x_offset = max(0, (cols - board_width) // 2)
+        self.offset = x_offset
 
     def display_text_animated(self,n, console, text_lines, delay=0.05):
         terminal_width = shutil.get_terminal_size().columns
@@ -95,7 +106,10 @@ class ConsoleView:
 
     def display_board(self, board, flip: bool = False):
         self.screen.clear()
-        # self.screen.bkgd(curses.color_pair(24))
+        self.screen.bkgd(curses.color_pair(24))
+
+        self.screen.attron(self.WHITE_ON_GRAY)
+
         self.screen.addstr("\n")
 
         eval = board.get_eval()
@@ -115,6 +129,7 @@ class ConsoleView:
                 row_number = str(8 - row_index)
 
             for i in range(5):
+                self.screen.addstr(" " * self.offset)
                 for column_index in range(8):
 
                     for j in range(11):
@@ -122,7 +137,7 @@ class ConsoleView:
 
                         if column_index==0 and i==0 and j==0:
                             color_pair = self.YELLOW_ON_GREEN if is_white_square else self.GREEN_ON_YELLOW
-                            self.screen.addstr(str(row_index+1), color_pair | curses.A_BOLD)
+                            self.screen.addstr(str(row_number), color_pair | curses.A_BOLD)
                             continue
 
                         if row_index==7 and i==4 and j==10:
@@ -160,34 +175,31 @@ class ConsoleView:
 
                 self.screen.addstr('\n')
 
-
-        # column_labels = "a b c d e f g h"
-        # if flip:
-        #     column_labels = column_labels[::-1]
-        # column_labels = "      " + column_labels
-        # self.screen.addstr("\n")
-        # self.screen.addstr(column_labels)
         self.screen.addstr("\n\n")
         self.screen.refresh()
 
     def display_eval(self, eval_score):
-        bar_length = 15
-        max_eval = 10
+        bar_length = 11 * 8
+        max_eval = 25
 
         eval = max(-max_eval, min(max_eval, eval_score))
-
-         # black_count = round((1 - ((eval + max_eval)) / (2 * max_eval)) * bar_length)
 
         normalized_eval = eval / max_eval
         black_count = int((1 - normalized_eval) / 2 * bar_length)
 
         white_count = bar_length - black_count
 
-        bar = '■' * white_count + '□' * black_count
-
-        self.screen.addstr(f"|{bar}|\n")
+        for _ in range(2):
+            self.screen.addstr(" " * self.offset)
+            for _ in range(white_count):
+                self.screen.addstr(" ", self.WHITE_ON_WHITE)
+            for _ in range(black_count):
+                self.screen.addstr(" ", self.BLACK_ON_BLACK)
+            self.screen.addstr('\n')
+        self.screen.addstr('\n')
 
     def display_message(self, message):
+        self.screen.addstr(" " * self.offset)
         self.screen.addstr(message)
         self.screen.refresh()
 
