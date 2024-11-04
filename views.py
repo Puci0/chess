@@ -10,6 +10,7 @@ import shutil
 import time
 import sys
 import curses
+import numpy as np
 
 
 class ConsoleView:
@@ -20,27 +21,41 @@ class ConsoleView:
     def start(self):
         curses.wrapper(self._initialize_screen)
 
-        color_1 = (210, 187, 151)
-        color_2 = (181, 136, 99)
+        color_1 = (210, 187, 151)  # green
+        color_2 = (181, 136, 99)  # yellow
         background_color = (118, 118, 118)
 
         curses.init_color(10, round(color_1[0] * 3.92), round(color_1[1] * 3.92), round(color_1[2] * 3.92))
         curses.init_color(11, round(color_2[0] * 3.92), round(color_2[1] * 3.92), round(color_2[2] * 3.92))
         curses.init_color(12, round(background_color[0] * 3.92), round(background_color[1] * 3.92), round(background_color[2] * 3.92))
 
+        curses.init_pair(17, curses.COLOR_WHITE, 12)
+        curses.init_pair(18, curses.COLOR_WHITE, curses.COLOR_WHITE)
+        curses.init_pair(19, curses.COLOR_BLACK, curses.COLOR_BLACK)
         curses.init_pair(20, curses.COLOR_BLACK, 10)
         curses.init_pair(21, curses.COLOR_BLACK, 11)
         curses.init_pair(22, curses.COLOR_WHITE, 10)
         curses.init_pair(23, curses.COLOR_WHITE, 11)
         curses.init_pair(24, 12, 12)
+        curses.init_pair(25, 10, 11)
+        curses.init_pair(26, 11, 10)
 
+        self.WHITE_ON_GRAY = curses.color_pair(17)
+        self.WHITE_ON_WHITE = curses.color_pair(18)
+        self.BLACK_ON_BLACK = curses.color_pair(19)
         self.BLACK_ON_GREEN = curses.color_pair(20)
         self.BLACK_ON_YELLOW = curses.color_pair(21)
         self.WHITE_ON_GREEN = curses.color_pair(22)
         self.WHITE_ON_YELLOW = curses.color_pair(23)
+        self.GREEN_ON_YELLOW = curses.color_pair(25)
+        self.YELLOW_ON_GREEN = curses.color_pair(26)
 
     def _initialize_screen(self, screen):
         self.screen = screen
+        rows, cols = self.screen.getmaxyx()
+        board_width = 8 * 11
+        x_offset = max(0, (cols - board_width) // 2)
+        self.offset = x_offset
 
     def display_text_animated(self,n, console, text_lines, delay=0.05):
         terminal_width = shutil.get_terminal_size().columns
@@ -55,6 +70,18 @@ class ConsoleView:
             console.clear()
             console.print(styled_text)
             time.sleep(delay)
+
+    def display_text(self, n, console, text_lines):
+        terminal_width = shutil.get_terminal_size().columns
+        displayed_text = []
+
+        for line in text_lines:
+            centered_line = line.center(terminal_width)
+            displayed_text.append(centered_line)
+
+        styled_text = Text("\n" * n + "\n".join(displayed_text), style="on gray25")
+        console.clear()
+        console.print(styled_text)
 
     def draw_table(self, console, selected_index, margin=False):
 
@@ -88,83 +115,102 @@ class ConsoleView:
         move = self.get_user_input("Enter a move: ")
         return move
 
-    def display_board(self, board, flip: bool = False):
+    def display_board(self, board, flip: bool=False):
         self.screen.clear()
         self.screen.bkgd(curses.color_pair(24))
+
+        self.screen.attron(self.WHITE_ON_GRAY)
+
         self.screen.addstr("\n")
 
         eval = board.get_eval()
         self.display_eval(eval)
 
+        column_labels = "abcdefgh"
+
         if flip:
             board = board.transform(chess.flip_horizontal).transform(chess.flip_vertical)
-
-        for i in range(8):
-            if flip:
-                row_number = str(i + 1)
-            else:
-                row_number = str(8 - i)
-            self.screen.addstr(f"  {row_number}   ")
-
-            for j in range(8):
-                piece = board.piece_at(chess.square(j, 7 - i))
-
-                is_white_square = (i + j) % 2 == 0
-
-                if is_white_square:
-                    color_pair = self.BLACK_ON_GREEN if piece and piece.color == chess.BLACK else self.WHITE_ON_GREEN
-                else:
-                    color_pair = self.BLACK_ON_YELLOW if piece and piece.color == chess.BLACK else self.WHITE_ON_YELLOW
-
-                print(color_pair)
-
-                if piece is None:
-                    self.screen.addstr(chrs[(Color.WHITE, Piece.EMPTY)], color_pair)
-                else:
-                    color = Color.WHITE if piece.color == chess.WHITE else Color.BLACK
-                    piece_type = {
-                        chess.PAWN: Piece.PAWN,
-                        chess.ROOK: Piece.ROOK,
-                        chess.KNIGHT: Piece.KNIGHT,
-                        chess.BISHOP: Piece.BISHOP,
-                        chess.QUEEN: Piece.QUEEN,
-                        chess.KING: Piece.KING,
-                    }[piece.piece_type]
-
-                    if color == Color.WHITE:
-                        self.screen.addstr(chrs[(color, piece_type)], color_pair)
-                    else:
-                        self.screen.addstr(chrs[(color, piece_type)], color_pair)
-
-            self.screen.addstr('\n')
-
-        column_labels = "a b c d e f g h"
-        if flip:
             column_labels = column_labels[::-1]
-        column_labels = "      " + column_labels
-        self.screen.addstr("\n")
-        self.screen.addstr(column_labels)
-        self.screen.addstr("\n\n")
+
+
+        for row_index in range(8):
+            if flip:
+                row_number = str(row_index + 1)
+            else:
+                row_number = str(8 - row_index)
+
+            for i in range(5):
+                self.screen.addstr(" " * self.offset)
+                for column_index in range(8):
+
+                    for j in range(11):
+                        is_white_square = (row_index + column_index) % 2 == 0
+
+                        if column_index==0 and i==0 and j==0:
+                            color_pair = self.YELLOW_ON_GREEN if is_white_square else self.GREEN_ON_YELLOW
+                            self.screen.addstr(str(row_number), color_pair | curses.A_BOLD)
+                            continue
+
+                        if row_index==7 and i==4 and j==10:
+                            color_pair = self.YELLOW_ON_GREEN if is_white_square else self.GREEN_ON_YELLOW
+                            self.screen.addstr(column_labels[column_index], color_pair | curses.A_BOLD)
+                            continue
+
+                        piece = board.piece_at(chess.square(column_index, 7 - row_index))
+
+                        is_white_square = (row_index + column_index) % 2 == 0
+
+                        if is_white_square:
+                            color_pair = self.BLACK_ON_GREEN if piece and piece.color == chess.BLACK else self.WHITE_ON_GREEN
+                        else:
+                            color_pair = self.BLACK_ON_YELLOW if piece and piece.color == chess.BLACK else self.WHITE_ON_YELLOW
+
+
+                        if piece is None:
+                            self.screen.addstr(chrs[(Color.WHITE, Piece.EMPTY)][i, j], color_pair)
+                        else:
+                            color = Color.WHITE if piece.color == chess.WHITE else Color.BLACK
+                            piece_type = {
+                                chess.PAWN: Piece.PAWN,
+                                chess.ROOK: Piece.ROOK,
+                                chess.KNIGHT: Piece.KNIGHT,
+                                chess.BISHOP: Piece.BISHOP,
+                                chess.QUEEN: Piece.QUEEN,
+                                chess.KING: Piece.KING,
+                            }[piece.piece_type]
+
+                            if color == Color.WHITE:
+                                self.screen.addstr(chrs[(color, piece_type)][i, j], color_pair | curses.A_BOLD)
+                            else:
+                                self.screen.addstr(chrs[(color, piece_type)][i, j], color_pair)
+
+                self.screen.addstr('\n')
+
+        # self.screen.addstr("\n\n")
         self.screen.refresh()
 
     def display_eval(self, eval_score):
-        bar_length = 15
-        max_eval = 10
+        bar_length = 11 * 8
+        max_eval = 25
 
         eval = max(-max_eval, min(max_eval, eval_score))
-
-         # black_count = round((1 - ((eval + max_eval)) / (2 * max_eval)) * bar_length)
 
         normalized_eval = eval / max_eval
         black_count = int((1 - normalized_eval) / 2 * bar_length)
 
         white_count = bar_length - black_count
 
-        bar = '■' * white_count + '□' * black_count
-
-        self.screen.addstr(f"     |{bar}|\n")
+        for _ in range(2):
+            self.screen.addstr(" " * self.offset)
+            for _ in range(white_count):
+                self.screen.addstr(" ", self.WHITE_ON_WHITE)
+            for _ in range(black_count):
+                self.screen.addstr(" ", self.BLACK_ON_BLACK)
+            self.screen.addstr('\n')
+        self.screen.addstr('\n')
 
     def display_message(self, message):
+        self.screen.addstr(" " * self.offset)
         self.screen.addstr(message)
         self.screen.refresh()
 
@@ -197,8 +243,7 @@ class ConsoleView:
 
         self.console.print("\n" * 7)
         self.console.print(table, justify="center")
-        self.console.print(
-            "\n[bold white on #767676] Press W to go up, S to go down, Tab to switch column, Enter to open in analysis mode, R to run game with 1sec delay, Q to quit:[/]")
+        self.console.print("\n[bold white on #767676] Press W to go up, S to go down, Tab to switch column, Enter to open in analysis mode, R to run game with 1sec delay, Q to quit:[/]")
 
     def navigate_files(self, folder1_path, folder2_path, controller):
         current_directory1 = folder1_path
@@ -216,7 +261,7 @@ class ConsoleView:
             choice = msvcrt.getch()
 
             if choice == b'q':
-                sys.exit(0)
+                break
 
             if choice == b'a':
                 selected_index[0] = 1
