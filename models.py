@@ -33,17 +33,17 @@ chrs = {
 ))).reshape((5, 11)),
     (Color.WHITE, Piece.PAWN): np.array(list((
     "           "
-    "     ()    "
-    "     )(    "
-    "    (  )   "
-    "   [____]  "
+    "    ( )    "
+    "    ) (    "
+    "   (   )   "
+    "  [_____]  "
 ))).reshape((5, 11)),
     (Color.WHITE, Piece.ROOK): np.array(list((
-    "   [`'`']  "
-    "    |::|   "
-    "    |::|   "
-    "    |::|   "
-    "   [____]  "
+    "   [`'`]   "
+    "    |:|    "
+    "    |:|    "
+    "    |:|    "
+    "   [___]   "
 ))).reshape((5, 11)),
     (Color.WHITE, Piece.KNIGHT): np.array(list((
     "   _/|     "
@@ -53,25 +53,25 @@ chrs = {
     "   )___(   "
 ))).reshape((5, 11)),
     (Color.WHITE, Piece.BISHOP): np.array(list((
-    "      o    "
-    "     (^)   "
-    "    -=H=-  "
-    "     ] [   "
-    "    /___\  "
+    "     o     "
+    "    (^)    "
+    "   -=H=-   "
+    "    ] [    "
+    "   /___\   "
 ))).reshape((5, 11)),
     (Color.WHITE, Piece.KING): np.array(list((
-    "    ++++   "
-    "    /  \\   "
-    "    |  |   "
-    "    [  ]   "
-    "   [____]  "
+    "    +++    "
+    "    / \\    "
+    "    | |    "
+    "    [ ]    "
+    "   [___]   "
 ))).reshape((5, 11)),
     (Color.WHITE, Piece.QUEEN): np.array(list((
-    "    ****   "
-    "    /  \\   "
-    "    |  |   "
-    "    [  ]   " 
-    "   [____]  "
+    "    ***    "
+    "    / \\    "
+    "    | |    "
+    "    [ ]    " 
+    "   [___]   "
 ))).reshape((5, 11)),
     (Color.BLACK, Piece.EMPTY): np.array(list((
     "           "
@@ -82,18 +82,17 @@ chrs = {
 ))).reshape((5, 11)),
     (Color.BLACK, Piece.PAWN): np.array(list((
     "           "
-    "     ()    "
-    "     )(    "
-    "    (  )   "
-    "   [____]  "
+    "    (#)    "
+    "    )#(    "
+    "   (###)   "
+    "  [#####]  "
 ))).reshape((5, 11)),
     (Color.BLACK, Piece.ROOK): np.array(list((
-    # "            "
-    "   [`'`']  "
-    "    |::|   "
-    "    |::|   "
-    "    |::|   "
-    "   [____]  "
+    "   [`'`]   "
+    "    |:|    "
+    "    |:|    "
+    "    |:|    "
+    "   [___]   "
 ))).reshape((5, 11)),
     (Color.BLACK, Piece.KNIGHT): np.array(list((
     "   _/|     "
@@ -103,25 +102,25 @@ chrs = {
     "   )___(   "
 ))).reshape((5, 11)),
     (Color.BLACK, Piece.BISHOP): np.array(list((
-    "      o    "
-    "     (^)   "
-    "    -=H=-  "
-    "     ] [   "
-    "    /___\\  "
+    "     o     "
+    "    (^)    "
+    "   -=H=-   "
+    "    ] [    "
+    "   /___\\   "
 ))).reshape((5, 11)),
     (Color.BLACK, Piece.KING): np.array(list((
-    "    ++++   "
-    "    /  \\   "
-    "    |  |   "
-    "    [  ]   "
-    "   [____]  "
+    "    +++    "
+    "    / \\    "
+    "    | |    "
+    "    [ ]    "
+    "   [___]   "
 ))).reshape((5, 11)),
     (Color.BLACK, Piece.QUEEN): np.array(list((
-    "    ****   "
-    "    /  \\   "
-    "    |  |   "
-    "    [  ]   " 
-    "   [____]  "
+    "    ***    "
+    "    / \\    "
+    "    | |    "
+    "    [ ]    " 
+    "   [___]   "
 ))).reshape((5, 11)),
 }
 

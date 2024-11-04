@@ -27,8 +27,7 @@ class ConsoleView:
 
         curses.init_color(10, round(color_1[0] * 3.92), round(color_1[1] * 3.92), round(color_1[2] * 3.92))
         curses.init_color(11, round(color_2[0] * 3.92), round(color_2[1] * 3.92), round(color_2[2] * 3.92))
-        curses.init_color(12, round(background_color[0] * 3.92), round(background_color[1] * 3.92),
-                          round(background_color[2] * 3.92))
+        curses.init_color(12, round(background_color[0] * 3.92), round(background_color[1] * 3.92), round(background_color[2] * 3.92))
 
         curses.init_pair(17, curses.COLOR_WHITE, 12)
         curses.init_pair(18, curses.COLOR_WHITE, curses.COLOR_WHITE)
@@ -116,7 +115,7 @@ class ConsoleView:
         move = self.get_user_input("Enter a move: ")
         return move
 
-    def display_board(self, board, flip: bool = False):
+    def display_board(self, board, flip: bool=False):
         self.screen.clear()
         self.screen.bkgd(curses.color_pair(24))
 
