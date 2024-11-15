@@ -14,7 +14,7 @@ import curses
 
 
 class ChessClient:
-    def __init__(self, server_ip='3.70.132.27', server_port=12345):
+    def __init__(self, server_ip='18.194.209.148', server_port=12345):
         self.server_ip = server_ip
         self.server_port = server_port
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -60,7 +60,6 @@ class ChessController:
         self.view = ConsoleView()
         self.client = ChessClient()
         self.board = None
-        # self.console_view = ConsoleView()
         self.current_player = None
 
         self.history_games_path = (pathlib.Path(__file__).parent / 'history').resolve()
@@ -76,7 +75,6 @@ class ChessController:
 
     def init_menu(self):
 
-
         chess_text = [
             " ██████╗██╗  ██╗███████╗███████╗███████╗",
             "██╔════╝██║  ██║██╔════╝██╔════╝██╔════╝",
@@ -84,6 +82,7 @@ class ChessController:
             "██║     ██╔══██║██╔══╝  ╚════██║╚════██║",
             "╚██████╗██║  ██║███████╗███████║███████║",
             " ╚═════╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝",
+            "                                        ",
             "                                        "
         ]
 
@@ -113,19 +112,19 @@ class ChessController:
         console = Console()
 
         os.system("color 8F")
-        os.system('mode con: cols=180 lines=52')
+        os.system('mode con: cols=166 lines=48')
         os.system('cls' if os.name == 'nt' else 'clear')
 
         self.view.start()
 
-        self.view.display_text_animated(2, console, chess_text, delay=0.02)
+        self.view.display_text_animated(4, console, chess_text, delay=0.02)
         self.view.draw_table(console, selected_index)
-        self.view.display_text_animated(18, console, pieces, delay=0)
+        self.view.display_text_animated(22, console, pieces, delay=0)
 
         while True:
-            self.view.display_text(2, console, chess_text)
+            self.view.display_text(4, console, chess_text)
             self.view.draw_table(console, selected_index)
-            self.view.display_text(18, console, pieces)
+            self.view.display_text(22, console, pieces)
 
             key = msvcrt.getch()
             if key == b'w' and selected_index > 0:
@@ -155,7 +154,6 @@ class ChessController:
 
 
     def enter_move(self):
-        # self.view.display_board(self.board)
         move = self.view.enter_move()
         return move
 
@@ -171,7 +169,6 @@ class ChessController:
                 move = self.enter_move()
 
                 if move.strip().lower() == 'ff':
-                    # self.view.clear_curse()
                     self.view.display_board(self.board)
                     self.view.display_message('Surrender! Press any key to continue...')
                     msvcrt.getch()
@@ -183,7 +180,6 @@ class ChessController:
                 else:
                     self.view.display_board(self.board)
                     self.view.display_message('Illegal move, try again.\n')
-                    # time.sleep(2)
                     continue
 
             else:
@@ -214,11 +210,11 @@ class ChessController:
         self.board = CustomBoard()
         self.filename = self.multi_games_path / f"game_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.txt"
 
+        self.view.display_board(self.board)
+
         if not self.client.connect():
             self.view.display_message("Nie można połączyć się z serwerem. Upewnij się, że serwer jest uruchomiony.")
             return
-
-        self.view.clear_terminal()
 
         data = self.client.receive_message()
         if data == 'Oczekiwanie na przeciwnika.':
@@ -227,7 +223,9 @@ class ChessController:
         data = self.client.receive_message()
         FLIP_BOARD = bool(int(data))
 
+
         data = self.client.receive_message()
+        self.view.display_board(self.board)
         if data == 'Rozpoczynanie partii.':
             self.view.display_message('Rozpoczynanie partii.')
 
@@ -240,11 +238,21 @@ class ChessController:
                 self.current_player = Player.PLAYER_1
 
                 while True:
+
                     move = self.view.enter_move()
+
+                    if move.strip().lower() == 'ff':
+                        self.view.display_board(self.board, FLIP_BOARD)
+                        self.view.display_message('Surrender! Press any key to continue...')
+                        msvcrt.getch()
+                        self.view.endwin()
+                        return
+
                     if self.board.is_move_valid(move):
                         break
-                    self.view.display_message('Illegal move, try again.')
-                    time.sleep(2)
+                    else:
+                        self.view.display_board(self.board, FLIP_BOARD)
+                        self.view.display_message('Illegal move, try again.\n')
 
                 self.client.send_message(move)
 
