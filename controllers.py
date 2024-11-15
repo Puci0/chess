@@ -308,8 +308,10 @@ class ChessController:
         self.view.display_board(self.board)
 
         while True:
-            key = self.view.get_user_input("Use 'd' to move forward, 'a' to move back, other key to quit: ")
-            if key == 'd':
+            self.view.display_message("Use 'd' to move forward, 'a' to move back, other key to quit: ")
+            key = msvcrt.getch()
+
+            if key == b'd':
                 if current_index + 1 < len(self.moves):
                     current_index += 1
                     self.board.push_san(self.moves[current_index])
@@ -317,7 +319,7 @@ class ChessController:
                 else:
                     self.view.display_board(self.board)
                     self.view.display_message("!!! That was last move. !!!\n")
-            elif key == 'a':
+            elif key == b'a':
                 if current_index - 1 >= 0:
                     current_index -= 1
                     self.board.pop()
