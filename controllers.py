@@ -296,7 +296,7 @@ class ChessController:
             "╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝      ╚═╝  ╚═╝╚═╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ",
         ]
 
-        self.view.display_text_animated(1, self.view.console, full_text, delay=0)
+        self.view.display_text_animated(4, self.view.console, full_text, delay=0)
         self.view.navigate_files(self.bot_games_path, self.multi_games_path, self)
 
     def analise_game(self, file_path):

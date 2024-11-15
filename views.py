@@ -246,7 +246,7 @@ class ConsoleView:
 
             table.add_row(folder1_display, folder2_display)
 
-        self.console.print("\n" * 7)
+        self.console.print("\n" * 10)
         self.console.print(table, justify="center")
         self.console.print("\n[bold white on #767676] Press W to go up, S to go down, Tab to switch column, Enter to open in analysis mode, R to run game with 1sec delay, Q to quit[/]", justify="center")
 
