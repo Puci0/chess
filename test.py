@@ -113,29 +113,21 @@
 # for _ in range(8):
 #     table.add_row('P', 'p', ' ', ' ', ' ', ' ', ' ', ' ')
 
+import requests
 
 
-import numpy as np
 
-# Zdefiniowanie pionka jako jednego ciągu tekstowego
-piece = (
-    "     __     "
-    "    (  )    "
-    "     ><     "
-    "    |  |    "
-    "   /    \\   "
-    "  |______|  "
-)
+params = {
+    'fen': '8/1P1R4/n1r2B2/3Pp3/1k4P1/6K1/Bppr1P2/2q5 w - - 0 1',
+    'depth': 4,
+    'maxThinkingTime': 50
+}
 
-# Parametry wymiarów macierzy
-width = 12
-height = 6
+response = requests.post('https://chess-api.com/v1', json=params)
+print(response)
 
-# Przekształcenie ciągu na listę znaków, a następnie na tablicę NumPy
-pionek_array = np.array(list(piece)).reshape((6, 12))
+data = response.json()
+print(data)
 
-# Test: wyświetlenie pionka w formie tablicy 2D
-print(pionek_array)
+move = data['move']
 
-# Przykład dostępu do konkretnego elementu
-print("\nZnak w pozycji [3, 3]:", pionek_array[3, 6])

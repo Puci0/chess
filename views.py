@@ -133,7 +133,6 @@ class ConsoleView:
         self.screen.bkgd(curses.color_pair(24))
 
         self.screen.attron(self.WHITE_ON_GRAY)
-
         self.screen.addstr("\n")
 
         eval = board.get_eval()
@@ -199,7 +198,6 @@ class ConsoleView:
 
                 self.screen.addstr('\n')
 
-        # self.screen.addstr("\n\n")
         self.screen.refresh()
 
     def display_eval(self, eval_score):
@@ -229,7 +227,7 @@ class ConsoleView:
         os.system('cls')
 
     def display_files(self, files1, files2, selected_index):
-        terminal_width = shutil.get_terminal_size().columns
+        # terminal_width = shutil.get_terminal_size().columns
         highlight_style = "rgb(123,129,129) on gray100"
 
         table = Table(show_header=True)
