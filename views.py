@@ -2,14 +2,15 @@ from rich.console import Console
 from rich.text import Text
 from rich.table import Table
 from rich import box
-from models import chrs, Color, Piece
+from models import Color, Piece, MenuOption, HistoryOption, CustomBoard
+from typing import Tuple, List, Union
 import chess
 import os
 import msvcrt
 import shutil
 import time
-import sys
 import curses
+import pathlib
 import numpy as np
 
 
@@ -18,8 +19,11 @@ class ConsoleView:
         self.screen = None
         self.console = Console()
 
-    def start(self):
-        curses.wrapper(self._initialize_screen)
+        os.system("color 8F")
+        os.system('mode con: cols=166 lines=48')
+        os.system('cls' if os.name == 'nt' else 'clear')
+
+        curses.wrapper(self.__initialize_screen)
 
         color_1 = (144, 140, 140)
         color_2 = (112, 108, 100)
@@ -51,84 +55,216 @@ class ConsoleView:
         self.GREEN_ON_YELLOW = curses.color_pair(25)
         self.YELLOW_ON_GREEN = curses.color_pair(26)
 
-    def _initialize_screen(self, screen):
-        self.screen = screen
-        rows, cols = self.screen.getmaxyx()
-        board_width = 8 * 11
-        x_offset = max(0, (cols - board_width) // 2)
-        self.offset = x_offset
+        self.chrs = {
+            Piece.EMPTY: np.array(list((
+                "           "
+                "           "
+                "           "
+                "           "
+                "           "
+            ))).reshape((5, 11)),
+            Piece.PAWN: np.array(list((
+                "           "
+                "    (#)    "
+                "    )#(    "
+                "   (###)   "
+                "  [#####]  "
+            ))).reshape((5, 11)),
+            Piece.ROOK: np.array(list((
+                "   [`'`]   "
+                "    |:|    "
+                "    |:|    "
+                "    |:|    "
+                "   [___]   "
+            ))).reshape((5, 11)),
+            Piece.KNIGHT: np.array(list((
+                "   _/|     "
+                "   // o\\   "
+                "   || ._)  "
+                "   //__\\   "
+                "   )___(   "
+            ))).reshape((5, 11)),
+            Piece.BISHOP: np.array(list((
+                "     o     "
+                "    (^)    "
+                "   -=H=-   "
+                "    ] [    "
+                "   /___\   "
+            ))).reshape((5, 11)),
+            Piece.KING: np.array(list((
+                "    +++    "
+                "    / \\    "
+                "    | |    "
+                "    [ ]    "
+                "   [___]   "
+            ))).reshape((5, 11)),
+            Piece.QUEEN: np.array(list((
+                "    ***    "
+                "    / \\    "
+                "    | |    "
+                "    [ ]    " 
+                "   [___]   "
+            ))).reshape((5, 11)),
+        }
 
-    def display_text_animated(self,n, console, text_lines, delay=0.05):
-        terminal_width = shutil.get_terminal_size().columns
-        max_length = max(len(line) for line in text_lines)
-        displayed_text = [""] * len(text_lines)
+        self.chess_text = [
+            " ██████╗██╗  ██╗███████╗███████╗███████╗",
+            "██╔════╝██║  ██║██╔════╝██╔════╝██╔════╝",
+            "██║     ███████║█████╗  ███████╗███████╗",
+            "██║     ██╔══██║██╔══╝  ╚════██║╚════██║",
+            "╚██████╗██║  ██║███████╗███████║███████║",
+            " ╚═════╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝",
+            "                                        ",
+            "                                        "
+        ]
 
-        for char_index in range(max_length + 1):
-            for line_index, line in enumerate(text_lines):
-                centered_line = line[:char_index].center(terminal_width)
-                displayed_text[line_index] = centered_line
-            styled_text = Text("\n" * n + "\n".join(displayed_text), style="on gray25")
-            console.clear()
-            console.print(styled_text)
-            time.sleep(delay)
+        self.game_history_text = [
+            " ██████╗  █████╗ ███╗   ███╗███████╗     ██╗  ██╗██╗███████╗████████╗ ██████╗ ██████╗ ██╗   ██╗",
+            "██╔════╝ ██╔══██╗████╗ ████║██╔════╝     ██║  ██║██║██╔════╝╚══██╔══╝██╔═══██╗██╔══██╗╚██╗ ██╔╝",
+            "██║  ███╗███████║██╔████╔██║█████╗       ███████║██║███████╗   ██║   ██║   ██║██████╔╝ ╚████╔╝ ",
+            "██║   ██║██╔══██║██║╚██╔╝██║██╔══╝       ██╔══██║██║╚════██║   ██║   ██║   ██║██╔══██╗  ╚██╔╝  ",
+            "╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗     ██║  ██║██║███████║   ██║   ╚██████╔╝██║  ██║   ██║   ",
+            "╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝      ╚═╝  ╚═╝╚═╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ",
+        ]
 
-    def display_text(self, n, console, text_lines):
-        terminal_width = shutil.get_terminal_size().columns
-        displayed_text = []
+        self.pieces = [
+            "   .::.                                                                                                     .::.    ",
+            "   _::_                                                                                                     _::_    ",
+            " _/____\_                                                        ()                                       _/____\_  ",
+            " \      /                                                      <~~~~>                                     \      /  ",
+            "  \____/                                                        \__/                                       \____/   ",
+            "  (____)            __/'''\               ______               (____)                                      (____)   ",
+            "   |  |            ]___ o  }             (______)               |  |                                        |  |    ",
+            "   |__|                /   }              \ __ /                |  |                    __                  |__|    ",
+            "  /    \             /~    }               |  |                 |__|                   (  )                /    \\  ",
+            " (______)            \____/                |__|                /____\                   ||                (______)  ",
+            "(________)           /____\               /____\              (______)                 /__\              (________) ",
+            "/________\          (______)             (______)            (________)               (____)             /________\\",
+        ]
 
-        for line in text_lines:
-            centered_line = line.center(terminal_width)
-            displayed_text.append(centered_line)
-
-        styled_text = Text("\n" * n + "\n".join(displayed_text), style="on gray25")
-        console.clear()
-        console.print(styled_text)
-
-    def draw_table(self, console, selected_index, margin=False):
-
-        highlight_style = "rgb(123,129,129) on gray100"
-        options = [
+        self.options = [
             "play with bot",
             "play multiplayer",
             "display history",
             "leave the game"
         ]
 
+        self.animated_text_displayed = False
+
+    def __initialize_screen(self, screen) -> None:
+        self.screen = screen
+        rows, cols = self.screen.getmaxyx()
+        board_width = 8 * 11
+        x_offset = max(0, (cols - board_width) // 2)
+        self.offset = x_offset
+
+    def display_menu(self) -> MenuOption:
+        self.clear_terminal()
+        selected_index = 0
+
+        if not self.animated_text_displayed:
+            self.display_text(4, self.chess_text, animated=True, delay=0.02)
+            self.draw_table(selected_index)
+            self.display_text(22, self.pieces, animated=True, delay=0)
+            self.animated_text_displayed = True
+
+        while True:
+            self.display_text(4, self.chess_text)
+            self.draw_table(selected_index)
+            self.display_text(22, self.pieces)
+
+            key = msvcrt.getch()
+            if key == b'w' and selected_index > 0:
+                selected_index -= 1
+                self.console.clear()
+                for _ in self.chess_text:
+                    self.console.print(Text(" ", style="on gray25"))
+                self.draw_table(selected_index, True)
+            elif key == b's' and selected_index < len(self.options) - 1:
+                selected_index += 1
+                self.console.clear()
+                for _ in self.chess_text:
+                    self.console.print(Text(" ", style="on gray25"))
+                self.draw_table(selected_index, True)
+            elif key == b'\r':
+                if selected_index == 0:
+                    return MenuOption.PLAY_WITH_BOT
+                elif selected_index == 1:
+                    return MenuOption.PLAY_MULTIPLAYER
+                elif selected_index == 2:
+                    return MenuOption.DISPLAY_HISTORY
+                elif selected_index == 3:
+                    os.system("color 0F")
+                    os.system('cls' if os.name == 'nt' else 'clear')
+                    return MenuOption.LEAVE_THE_GAME
+
+    def display_text(self, n: int, text_lines: list, animated: bool = False, delay: float = 0.02) -> None:
+        terminal_width = shutil.get_terminal_size().columns
+        displayed_text = []
+
+        if animated:
+            max_length = max(len(line) for line in text_lines)
+            displayed_text = [""] * len(text_lines)
+
+            for char_index in range(max_length + 1):
+                for line_index, line in enumerate(text_lines):
+                    centered_line = line[:char_index].center(terminal_width)
+                    displayed_text[line_index] = centered_line
+                styled_text = Text("\n" * n + "\n".join(displayed_text), style="on gray25")
+                self.console.clear()
+                self.console.print(styled_text)
+                time.sleep(delay)
+
+        else:
+            for line in text_lines:
+                centered_line = line.center(terminal_width)
+                displayed_text.append(centered_line)
+
+            styled_text = Text("\n" * n + "\n".join(displayed_text), style="on gray25")
+            self.console.clear()
+            self.console.print(styled_text)
+
+    def draw_table(self, selected_index: int, margin: bool = False) -> None:
+
+        highlight_style = "rgb(123,129,129) on gray100"
+
         table = Table(show_header=False, box=box.ROUNDED, show_lines=True)
         table.add_column(justify="center")
 
-        for index, option in enumerate(options):
+        for index, option in enumerate(self.options):
             if index == selected_index:
                 table.add_row(Text(option, style=highlight_style))
             else:
                 table.add_row(Text(option))
         if margin == False:
-            console.print(table, justify="center", overflow="crop")
+            self.console.print(table, justify="center", overflow="crop")
         else:
-            console.print("\n")
-            console.print(table, justify="center", overflow="crop")
+            self.console.print("\n")
+            self.console.print(table, justify="center", overflow="crop")
 
-    def get_menu_choice(self):
-        choice = input("\nChoose what you want:\n 'play with bot','play with another player', 'display history', 'q': ")
-        return choice
+    def enter_move(self) -> str:
+        self.display_message("Enter a move: ")
+        return self.screen.getstr().decode()
 
-    def enter_move(self):
-        move = self.get_user_input("Enter a move: ")
-        return move
-
-    def display_message(self, message):
+    def display_message(self, message: str) -> None:
         self.screen.addstr(" " * self.offset)
         self.screen.addstr(message)
         self.screen.refresh()
 
-    def get_user_input(self, prompt):
-        self.display_message(prompt)
-        return self.screen.getstr().decode()
-
-    def endwin(self):
+    def endwin(self) -> None:
         curses.endwin()
 
-    def display_board(self, board, flip: bool=False):
+    def get_user_input_for_analysis(self) -> str:
+        self.display_message("Use 'd' to move forward, 'a' to move back, any other key to quit: ")
+        key = msvcrt.getch()
+        if key == b'd':
+            return 'forward'
+        elif key == b'a':
+            return 'backward'
+        else:
+            return 'quit'
+
+    def display_board(self, board: CustomBoard, flip: bool=False) -> None:
         self.screen.clear()
         self.screen.bkgd(curses.color_pair(24))
 
@@ -179,7 +315,7 @@ class ConsoleView:
 
 
                         if piece is None:
-                            self.screen.addstr(chrs[(Color.WHITE, Piece.EMPTY)][i, j], color_pair)
+                            self.screen.addstr(self.chrs[Piece.EMPTY][i, j], color_pair)
                         else:
                             color = Color.WHITE if piece.color == chess.WHITE else Color.BLACK
                             piece_type = {
@@ -192,15 +328,15 @@ class ConsoleView:
                             }[piece.piece_type]
 
                             if color == Color.WHITE:
-                                self.screen.addstr(chrs[(color, piece_type)][i, j], color_pair | curses.A_BOLD)
+                                self.screen.addstr(self.chrs[piece_type][i, j], color_pair | curses.A_BOLD)
                             else:
-                                self.screen.addstr(chrs[(color, piece_type)][i, j], color_pair)
+                                self.screen.addstr(self.chrs[piece_type][i, j], color_pair)
 
                 self.screen.addstr('\n')
 
         self.screen.refresh()
 
-    def display_eval(self, eval_score):
+    def display_eval(self, eval_score) -> None:
         bar_length = 11 * 8
         max_eval = 25
 
@@ -220,13 +356,10 @@ class ConsoleView:
             self.screen.addstr('\n')
         self.screen.addstr('\n')
 
-    def clear_curse(self):
-        self.screen.clear()
-
-    def clear_terminal(self):
+    def clear_terminal(self) -> None:
         os.system('cls')
 
-    def display_files(self, files1, files2, selected_index):
+    def display_files(self, files1: List, files2: List, selected_index: List[int]) -> None:
         # terminal_width = shutil.get_terminal_size().columns
         highlight_style = "rgb(123,129,129) on gray100"
 
@@ -250,23 +383,20 @@ class ConsoleView:
         self.console.print(table, justify="center")
         self.console.print("\n[bold white on #767676] Press W to go up, S to go down, Tab to switch column, Enter to open in analysis mode, R to run game with 1sec delay, Q to quit[/]", justify="center")
 
-    def navigate_files(self, folder1_path, folder2_path, controller):
-        current_directory1 = folder1_path
-        current_directory2 = folder2_path
+    def display_history(self, bot_files: List[str], multiplayer_files: List[str]) -> Tuple[HistoryOption, Union[str, None], int]:
+        self.clear_terminal()
+        self.display_text(4, self.game_history_text, animated=True, delay=0)
 
         selected_index = [1, 0]
 
         while True:
-            files1 = os.listdir(current_directory1)
-            files2 = os.listdir(current_directory2)
-
             self.console.clear()
-            self.display_files(files1, files2, selected_index)
+            self.display_files(bot_files, multiplayer_files, selected_index)
 
             choice = msvcrt.getch()
 
             if choice == b'q':
-                break
+                return HistoryOption.QUIT, None, -1
 
             if choice == b'a':
                 selected_index[0] = 1
@@ -280,31 +410,22 @@ class ConsoleView:
                 if selected_index[0] == 1:
                     if choice == b'w' and selected_index[1] > 0:
                         selected_index[1] -= 1
-                    elif choice == b's' and selected_index[1] < len(files1) - 1:
+                    elif choice == b's' and selected_index[1] < len(bot_files) - 1:
                         selected_index[1] += 1
                 else:
                     if choice == b'w' and selected_index[1] > 0:
                         selected_index[1] -= 1
-                    elif choice == b's' and selected_index[1] < len(files2) - 1:
+                    elif choice == b's' and selected_index[1] < len(multiplayer_files) - 1:
                         selected_index[1] += 1
 
             elif choice == b'\r':
                 if selected_index[0] == 1:
-                    selected = files1[selected_index[1]]
-                    new_path = os.path.join(current_directory1, selected)
+                    return HistoryOption.ANALISE_GAME, bot_files[selected_index[1]], 1
                 else:
-                    selected = files2[selected_index[1]]
-                    new_path = os.path.join(current_directory2, selected)
-
-                if os.path.isfile(new_path):
-                    controller.analise_game(new_path)
+                    return HistoryOption.ANALISE_GAME, multiplayer_files[selected_index[1]], 2
 
             elif choice == b'r':
                 if selected_index[0] == 1:
-                    selected = files1[selected_index[1]]
-                    new_path = os.path.join(current_directory1, selected)
+                    return HistoryOption.AUTOMATIC_GAME, bot_files[selected_index[1]], 1
                 else:
-                    selected = files2[selected_index[1]]
-                    new_path = os.path.join(current_directory2, selected)
-
-                controller.automatic_game(new_path)
+                    return HistoryOption.AUTOMATIC_GAME, multiplayer_files[selected_index[1]], 2

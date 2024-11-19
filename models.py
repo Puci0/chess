@@ -23,123 +23,23 @@ class Piece(enum.Enum):
     KING = enum.auto()
     QUEEN = enum.auto()
 
-chrs = {
-    (Color.WHITE, Piece.EMPTY): np.array(list((
-    "           "
-    "           "
-    "           "
-    "           "
-    "           "
-))).reshape((5, 11)),
-    (Color.WHITE, Piece.PAWN): np.array(list((
-    "           "
-    "    (#)    "
-    "    )#(    "
-    "   (###)   "
-    "  [#####]  "
-))).reshape((5, 11)),
-    (Color.WHITE, Piece.ROOK): np.array(list((
-    "   [`'`]   "
-    "    |:|    "
-    "    |:|    "
-    "    |:|    "
-    "   [___]   "
-))).reshape((5, 11)),
-    (Color.WHITE, Piece.KNIGHT): np.array(list((
-    "   _/|     "
-    "   // o\\   "
-    "   || ._)  "
-    "   //__\\   "
-    "   )___(   "
-))).reshape((5, 11)),
-    (Color.WHITE, Piece.BISHOP): np.array(list((
-    "     o     "
-    "    (^)    "
-    "   -=H=-   "
-    "    ] [    "
-    "   /___\   "
-))).reshape((5, 11)),
-    (Color.WHITE, Piece.KING): np.array(list((
-    "    +++    "
-    "    / \\    "
-    "    | |    "
-    "    [ ]    "
-    "   [___]   "
-))).reshape((5, 11)),
-    (Color.WHITE, Piece.QUEEN): np.array(list((
-    "    ***    "
-    "    / \\    "
-    "    | |    "
-    "    [ ]    " 
-    "   [___]   "
-))).reshape((5, 11)),
-    (Color.BLACK, Piece.EMPTY): np.array(list((
-    "           "
-    "           "
-    "           "
-    "           "
-    "           "
-))).reshape((5, 11)),
-    (Color.BLACK, Piece.PAWN): np.array(list((
-    "           "
-    "    (#)    "
-    "    )#(    "
-    "   (###)   "
-    "  [#####]  "
-))).reshape((5, 11)),
-    (Color.BLACK, Piece.ROOK): np.array(list((
-    "   [`'`]   "
-    "    |:|    "
-    "    |:|    "
-    "    |:|    "
-    "   [___]   "
-))).reshape((5, 11)),
-    (Color.BLACK, Piece.KNIGHT): np.array(list((
-    "   _/|     "
-    "   // o\\   "
-    "   || ._)  "
-    "   //__\\   "
-    "   )___(   "
-))).reshape((5, 11)),
-    (Color.BLACK, Piece.BISHOP): np.array(list((
-    "     o     "
-    "    (^)    "
-    "   -=H=-   "
-    "    ] [    "
-    "   /___\\   "
-))).reshape((5, 11)),
-    (Color.BLACK, Piece.KING): np.array(list((
-    "    +++    "
-    "    / \\    "
-    "    | |    "
-    "    [ ]    "
-    "   [___]   "
-))).reshape((5, 11)),
-    (Color.BLACK, Piece.QUEEN): np.array(list((
-    "    ***    "
-    "    / \\    "
-    "    | |    "
-    "    [ ]    " 
-    "   [___]   "
-))).reshape((5, 11)),
-}
+class MoveResult(enum.Enum):
+    SUCCESS = "Success"
+    MATE = "Mate"
+    STALEMATE = "Stalemate"
+    INVALID_MOVE = "Invalid Move"
+    GAME_ENDED = "Game Ended"
 
-# chrs = {
-#     (Color.WHITE, Piece.EMPTY): "\u00B7 ",
-#     (Color.WHITE, Piece.PAWN): "\u2659 ",
-#     (Color.WHITE, Piece.ROOK): "\u2656 ",
-#     (Color.WHITE, Piece.KNIGHT): "\u2658 ",
-#     (Color.WHITE, Piece.BISHOP): "\u2657 ",
-#     (Color.WHITE, Piece.KING): "\u2654 ",
-#     (Color.WHITE, Piece.QUEEN): "\u2655 ",
-#     (Color.BLACK, Piece.EMPTY): "\u00B7 ",
-#     (Color.BLACK, Piece.PAWN): "\u265F ",
-#     (Color.BLACK, Piece.ROOK): "\u265C ",
-#     (Color.BLACK, Piece.KNIGHT): "\u265E ",
-#     (Color.BLACK, Piece.BISHOP): "\u265D ",
-#     (Color.BLACK, Piece.KING): "\u265A ",
-#     (Color.BLACK, Piece.QUEEN): "\u265B ",
-# }
+class MenuOption(enum.Enum):
+    PLAY_WITH_BOT = 1
+    PLAY_MULTIPLAYER = 2
+    DISPLAY_HISTORY = 3
+    LEAVE_THE_GAME = 4
+
+class HistoryOption(enum.Enum):
+    ANALISE_GAME = 1
+    AUTOMATIC_GAME = 2
+    QUIT = 3
 
 class CustomBoard(chess.Board):
     def __init__(self, *args, **kwargs):
@@ -180,22 +80,27 @@ class CustomBoard(chess.Board):
 
         return move
 
-    def move(self, move):
+    def move(self, move: str) -> MoveResult:
+        if move.strip().lower() == 'ff':
+            return MoveResult.GAME_ENDED
+
+        if not self.is_move_valid(move):
+            return MoveResult.INVALID_MOVE
+
         chess_move = self.parse_san(move)
         self.push(chess_move)
-        if self.is_checkmate():
-            return "Mate"
-        elif self.is_stalemate():
-            return "Stalemate"
-        else:
-            return True
 
-    def is_move_valid(self, move):
+        if self.is_checkmate():
+            return MoveResult.MATE
+        elif self.is_stalemate():
+            return MoveResult.STALEMATE
+        else:
+            return MoveResult.SUCCESS
+
+    def is_move_valid(self, move: str) -> bool:
         try:
             chess_move = self.parse_san(move)
             if chess_move in self.legal_moves:
                 return True
         except ValueError:
-            pass
-        return False
-
+            return False

@@ -112,22 +112,17 @@
 #
 # for _ in range(8):
 #     table.add_row('P', 'p', ' ', ' ', ' ', ' ', ' ', ' ')
+import pathlib
+from datetime import datetime
 
-import requests
+history_games_path = (pathlib.Path(__file__).parent / 'history').resolve()
+history_games_path.mkdir(exist_ok=True)
+
+bot_games_path = history_games_path / 'bot_games'
+bot_games_path.mkdir(exist_ok=True)
+
+multi_games_path = history_games_path / 'multiplayer_games'
+multi_games_path.mkdir(exist_ok=True)
 
 
-
-params = {
-    'fen': '8/1P1R4/n1r2B2/3Pp3/1k4P1/6K1/Bppr1P2/2q5 w - - 0 1',
-    'depth': 4,
-    'maxThinkingTime': 50
-}
-
-response = requests.post('https://chess-api.com/v1', json=params)
-print(response)
-
-data = response.json()
-print(data)
-
-move = data['move']
-
+print(type(bot_games_path / f"game_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.txt"))

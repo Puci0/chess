@@ -1,20 +1,17 @@
-import time
-from datetime import datetime
+from models import Player, CustomBoard, MoveResult, MenuOption, HistoryOption
 from views import ConsoleView
-from models import Player, CustomBoard
+from datetime import datetime
 import pathlib
 import socket
-from rich.console import Console
-from rich.text import Text
 import time
-import os
-import shutil
 import msvcrt
-import curses
+from typing import List
+import os
 
 
 class ChessClient:
-    def __init__(self, server_ip='18.194.209.148', server_port=12345):
+    def __init__(self, view: ConsoleView, server_ip='18.194.209.148', server_port=12345):
+        self.view = view
         self.server_ip = server_ip
         self.server_port = server_port
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -36,7 +33,7 @@ class ChessClient:
 
     def receive_message(self):
         if not self.connected:
-            print("Brak połączenia z serwerem.")
+            self.view.display_message("Brak połączenia z serwerem.")
             return None
 
         try:
@@ -44,7 +41,7 @@ class ChessClient:
             if message:
                 return message
         except OSError as e:
-            print(f"Blad podczas odbierania wiadomosci: {e}")
+            self.view.display_message(f"Blad podczas odbierania wiadomosci: {e}")
 
     def send_message(self, message):
         if not self.connected:
@@ -58,126 +55,48 @@ class ChessClient:
 class ChessController:
     def __init__(self):
         self.view = ConsoleView()
-        self.client = ChessClient()
+        self.client = ChessClient(self.view)
+        self.history_controller = HistoryController(self.view)
         self.board = None
         self.current_player = None
 
-        self.history_games_path = (pathlib.Path(__file__).parent / 'history').resolve()
-        self.history_games_path.mkdir(exist_ok=True)
+    def run(self) -> None:
+        self.is_running = True
 
-        self.bot_games_path = self.bot_games_path = self.history_games_path / 'bot_games'
-        self.bot_games_path.mkdir(exist_ok=True)
+        while self.is_running:
+            selected_option = self.view.display_menu()
 
-        self.multi_games_path = self.history_games_path / 'multiplayer_games'
-        self.multi_games_path.mkdir(exist_ok=True)
-
-        self.filename = None
-
-    def init_menu(self):
-
-        chess_text = [
-            " ██████╗██╗  ██╗███████╗███████╗███████╗",
-            "██╔════╝██║  ██║██╔════╝██╔════╝██╔════╝",
-            "██║     ███████║█████╗  ███████╗███████╗",
-            "██║     ██╔══██║██╔══╝  ╚════██║╚════██║",
-            "╚██████╗██║  ██║███████╗███████║███████║",
-            " ╚═════╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝",
-            "                                        ",
-            "                                        "
-        ]
-
-        pieces = [
-            "   .::.                                                                                                     .::.    ",
-            "   _::_                                                                                                     _::_    ",
-            " _/____\_                                                        ()                                       _/____\_  ",
-            " \      /                                                      <~~~~>                                     \      /  ",
-            "  \____/                                                        \__/                                       \____/   ",
-            "  (____)            __/'''\               ______               (____)                                      (____)   ",
-            "   |  |            ]___ o  }             (______)               |  |                                        |  |    ",
-            "   |__|                /   }              \ __ /                |  |                    __                  |__|    ",
-            "  /    \             /~    }               |  |                 |__|                   (  )                /    \\  ",
-            " (______)            \____/                |__|                /____\                   ||                (______)  ",
-            "(________)           /____\               /____\              (______)                 /__\              (________) ",
-            "/________\          (______)             (______)            (________)               (____)             /________\\",
-        ]
-
-        options = [
-            "play with bot",
-            "play multiplayer",
-            "display history",
-            "leave the game"
-        ]
-
-        selected_index = 0
-        console = Console()
-
-        os.system("color 8F")
-        os.system('mode con: cols=166 lines=48')
-        os.system('cls' if os.name == 'nt' else 'clear')
-
-        self.view.start()
-
-        self.view.display_text_animated(4, console, chess_text, delay=0.02)
-        self.view.draw_table(console, selected_index)
-        self.view.display_text_animated(22, console, pieces, delay=0)
-
-        while True:
-            self.view.display_text(4, console, chess_text)
-            self.view.draw_table(console, selected_index)
-            self.view.display_text(22, console, pieces)
-
-            key = msvcrt.getch()
-            if key == b'w' and selected_index > 0:
-                selected_index -= 1
-                console.clear()
-                for _ in chess_text:
-                    console.print(Text(" ", style="on gray25"))
-                self.view.draw_table(console, selected_index, True)
-            elif key == b's' and selected_index < len(options) - 1:
-                selected_index += 1
-                console.clear()
-                for _ in chess_text:
-                    console.print(Text(" ", style="on gray25"))
-                self.view.draw_table(console, selected_index, True)
-            elif key == b'\r':
-                if selected_index == 0:
-                    self.play_with_bot()
-                elif selected_index == 1:
-                    self.play_multiplayer()
-                elif selected_index == 2:
-                    self.display_history()
-                    self.view.clear_terminal()
-                elif selected_index == 3:
-                    os.system("color 0F")
-                    os.system('cls' if os.name == 'nt' else 'clear')
-                    break
+            if selected_option == MenuOption.PLAY_WITH_BOT:
+                self.play_with_bot()
+            elif selected_option == MenuOption.PLAY_MULTIPLAYER:
+                self.play_multiplayer()
+            elif selected_option == MenuOption.DISPLAY_HISTORY:
+                self.history_controller.manage_game_history()
+            elif selected_option == MenuOption.LEAVE_THE_GAME:
+                self.is_running = False
 
 
-    def enter_move(self):
-        move = self.view.enter_move()
-        return move
-
-    def play_with_bot(self):
+    def play_with_bot(self) -> None:
+        filename = self.history_controller.get_new_filename('bot')
         self.board = CustomBoard()
         self.current_player = Player.HUMAN
-        self.filename = self.bot_games_path / f"game_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.txt"
 
         self.view.display_board(self.board)
         while True:
             if self.current_player == Player.HUMAN:
                 # Human playing
-                move = self.enter_move()
+                move = self.view.enter_move()
 
-                if move.strip().lower() == 'ff':
+                result = self.board.move(move)
+
+                if result == MoveResult.GAME_ENDED:
                     self.view.display_board(self.board)
-                    self.view.display_message('Surrender! Press any key to continue...')
+                    self.view.display_message('Surrender!\nPress any key to continue...')
                     msvcrt.getch()
                     self.view.endwin()
-                    return
+                    break
 
-                if self.board.is_move_valid(move):
-                    result = self.board.move(move)
-                else:
+                if result == MoveResult.INVALID_MOVE:
                     self.view.display_board(self.board)
                     self.view.display_message('Illegal move, try again.\n')
                     continue
@@ -190,25 +109,28 @@ class ChessController:
                 result = self.board.move(move)
 
             self.view.display_board(self.board, flip=False)
-            self.save_move(move)
+            self.history_controller.save_move(filename, move)
 
-            if result == "Mate":
+            if result == MoveResult.MATE:
+                self.view.display_board(self.board)
                 message = 'You win!' if self.current_player == Player.HUMAN else 'Bot wins!'
                 message = 'Checkmate! ' + message
                 self.view.display_message(message)
-                time.sleep(2)
+                msvcrt.getch()
+                self.view.endwin()
                 break
-            elif result == "Stalemate":
+            elif result == MoveResult.STALEMATE:
+                self.view.display_board(self.board)
                 self.view.display_message("Stalemate! It's a draw.")
-                time.sleep(2)
+                msvcrt.getch()
+                self.view.endwin()
                 break
 
             self.current_player = Player.BOT if self.current_player == Player.HUMAN else Player.HUMAN
 
-
     def play_multiplayer(self):
+        filename = self.history_controller.get_new_filename('multiplayer')
         self.board = CustomBoard()
-        self.filename = self.multi_games_path / f"game_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.txt"
 
         self.view.display_board(self.board)
 
@@ -267,7 +189,7 @@ class ChessController:
                     break
 
             result = self.board.move(move)
-            self.save_move(move)
+            self.history_controller.save_move(filename, move)
             if result == "Mate":
                 message = 'You win!' if self.current_player == Player.PLAYER_1 else 'You lost!'
                 message = 'Checkmate! ' + message
@@ -280,63 +202,82 @@ class ChessController:
                 break
 
 
-    def save_move(self, move):
-        with open(self.filename, 'a') as f:
-            f.write(f"{move}\n")
+class HistoryController:
+    def __init__(self, view: ConsoleView):
+        self.view = view
+
+        self.history_games_path = (pathlib.Path(__file__).parent / 'history').resolve()
+        self.history_games_path.mkdir(exist_ok=True)
+
+        self.bot_games_path = self.history_games_path / 'bot_games'
+        self.bot_games_path.mkdir(exist_ok=True)
+
+        self.multi_games_path = self.history_games_path / 'multiplayer_games'
+        self.multi_games_path.mkdir(exist_ok=True)
+
+    def manage_game_history(self) -> None:
+        self.is_running = True
+
+        while self.is_running:
+            bot_files = os.listdir(self.bot_games_path)
+            multiplayer_files = os.listdir(self.multi_games_path)
+
+            selected_option, file_name, folder_type = self.view.display_history(bot_files, multiplayer_files)
+
+            if selected_option == HistoryOption.QUIT:
+                break
+
+            if folder_type == 1:
+                path = self.bot_games_path / file_name
+            else:
+                path = self.multi_games_path / file_name
+
+            moves = self.read_moves(path)
+
+            if selected_option == HistoryOption.ANALISE_GAME:
+                self.analise_game(moves)
+            elif selected_option == HistoryOption.AUTOMATIC_GAME:
+                self.automatic_game(moves)
 
 
-    def display_history(self):
-        self.view.clear_terminal()
-        full_text = [
-            "██████╗  █████╗ ███╗   ███╗███████╗      ██╗  ██╗██╗███████╗████████╗ ██████╗ ██████╗ ██╗   ██╗",
-            "██╔════╝ ██╔══██╗████╗ ████║██╔════╝     ██║  ██║██║██╔════╝╚══██╔══╝██╔═══██╗██╔══██╗╚██╗ ██╔╝",
-            "██║  ███╗███████║██╔████╔██║█████╗       ███████║██║███████╗   ██║   ██║   ██║██████╔╝ ╚████╔╝ ",
-            "██║   ██║██╔══██║██║╚██╔╝██║██╔══╝       ██╔══██║██║╚════██║   ██║   ██║   ██║██╔══██╗  ╚██╔╝  ",
-            "╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗     ██║  ██║██║███████║   ██║   ╚██████╔╝██║  ██║   ██║   ",
-            "╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝      ╚═╝  ╚═╝╚═╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ",
-        ]
-
-        self.view.display_text_animated(4, self.view.console, full_text, delay=0)
-        self.view.navigate_files(self.bot_games_path, self.multi_games_path, self)
-
-    def analise_game(self, file_path):
+    def read_moves(self, file_path: pathlib.Path) -> List[str]:
         with open(file_path, 'r') as f:
-            self.moves = [move.strip() for move in f.readlines()]
+            moves = [move.strip() for move in f.readlines()]
 
+        return moves
+
+    def analise_game(self, moves: List[str]) -> None:
         current_index = -1
-        self.board = CustomBoard()
-        self.view.display_board(self.board)
+        board = CustomBoard()
+        self.view.display_board(board)
 
         while True:
-            self.view.display_message("Use 'd' to move forward, 'a' to move back, other key to quit: ")
-            key = msvcrt.getch()
+            action = self.view.get_user_input_for_analysis()
 
-            if key == b'd':
-                if current_index + 1 < len(self.moves):
+            if action == 'forward':
+                if current_index + 1 < len(moves):
                     current_index += 1
-                    self.board.push_san(self.moves[current_index])
-                    self.view.display_board(self.board)
+                    board.push_san(moves[current_index])
+                    self.view.display_board(board)
                 else:
-                    self.view.display_board(self.board)
-                    self.view.display_message("!!! That was last move. !!!\n")
-            elif key == b'a':
+                    self.view.display_board(board)
+                    self.view.display_message("That was last move!\n")
+            elif action == 'backward':
                 if current_index - 1 >= 0:
                     current_index -= 1
-                    self.board.pop()
-                    self.view.display_board(self.board)
+                    board.pop()
+                    self.view.display_board(board)
                 else:
-                    self.view.display_board(self.board)
-                    self.view.display_message("!!! That was first move !!!\n")
+                    self.view.display_board(board)
+                    self.view.display_message("That was first move!\n")
             else:
                 self.view.endwin()
                 break
 
-    def automatic_game(self, file_path):
-        with open(file_path, 'r') as f:
-            self.moves = [move.strip() for move in f.readlines()]
+    def automatic_game(self, moves: List[str]) -> None:
         self.board = CustomBoard()
         self.view.display_board(self.board)
-        for move in self.moves:
+        for move in moves:
             time.sleep(1)
             self.board.push_san(move)
             self.view.display_board(self.board)
@@ -345,3 +286,13 @@ class ChessController:
         self.view.display_message("Press any key to continue...")
         msvcrt.getch()
         self.view.endwin()
+
+    def get_new_filename(self, game_type: str) -> pathlib.Path:
+        if game_type == 'bot':
+            return self.bot_games_path / f"game_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.txt"
+        elif game_type == 'multiplayer':
+            return self.multi_games_path / f"game_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.txt"
+
+    def save_move(self, filename: pathlib.Path, move: str) -> None:
+        with open(filename, 'a') as f:
+            f.write(f"{move}\n")
