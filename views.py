@@ -10,12 +10,11 @@ import msvcrt
 import shutil
 import time
 import curses
-import pathlib
 import numpy as np
 
 
 class ConsoleView:
-    def __init__(self):
+    def __init__(self) -> None:
         self.screen = None
         self.console = Console()
 

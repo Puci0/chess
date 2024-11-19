@@ -1,7 +1,6 @@
 import chess
 import enum
 import requests
-import numpy as np
 
 
 class Player(enum.Enum):
@@ -42,12 +41,12 @@ class HistoryOption(enum.Enum):
     QUIT = 3
 
 class CustomBoard(chess.Board):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.API_URL = 'https://chess-api.com/v1'
         self.__eval = 0
 
-    def get_eval(self):
+    def get_eval(self) -> float:
         params = {
             'fen': self.fen(),
             'depth': 1,
@@ -66,7 +65,7 @@ class CustomBoard(chess.Board):
 
         return eval
 
-    def get_bot_move(self, depth=4, maxThinkingTime=50):
+    def get_bot_move(self, depth: int = 4, maxThinkingTime: int = 50) -> str:
         params = {
             'fen': self.fen(),
             'depth': depth,
