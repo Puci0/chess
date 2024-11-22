@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from rich.console import Console
 from rich.text import Text
 from rich.table import Table
@@ -142,13 +144,14 @@ class ConsoleView:
         ]
 
         self.options = [
-            "play with bot",
-            "play multiplayer",
-            "display history",
-            "leave the game"
+            "Play with bot",
+            "Play multiplayer",
+            "Display history",
+            "Leave the game"
         ]
 
-        self.animated_text_displayed = False
+        self.animated_text_displayed_menu = False
+        self.animated_text_displayed_history = False
 
     def __initialize_screen(self, screen) -> None:
         self.screen = screen
@@ -161,11 +164,11 @@ class ConsoleView:
         self.clear_terminal()
         selected_index = 0
 
-        if not self.animated_text_displayed:
+        if not self.animated_text_displayed_menu:
             self.display_text(4, self.chess_text, animated=True, delay=0.02)
             self.draw_table(selected_index)
             self.display_text(22, self.pieces, animated=True, delay=0)
-            self.animated_text_displayed = True
+            self.animated_text_displayed_menu = True
 
         while True:
             self.display_text(4, self.chess_text)
@@ -224,7 +227,6 @@ class ConsoleView:
             self.console.print(styled_text)
 
     def draw_table(self, selected_index: int, margin: bool = False) -> None:
-
         highlight_style = "rgb(123,129,129) on gray100"
 
         table = Table(show_header=False, box=box.ROUNDED, show_lines=True)
@@ -235,7 +237,7 @@ class ConsoleView:
                 table.add_row(Text(option, style=highlight_style))
             else:
                 table.add_row(Text(option))
-        if margin == False:
+        if not margin:
             self.console.print(table, justify="center", overflow="crop")
         else:
             self.console.print("\n")
@@ -250,7 +252,11 @@ class ConsoleView:
         self.screen.addstr(message)
         self.screen.refresh()
 
-    def endwin(self) -> None:
+    def end_game(self, message: str = None) -> None:
+        if message:
+            self.display_message(message)
+            msvcrt.getch()
+
         curses.endwin()
 
     def get_user_input_for_analysis(self) -> str:
@@ -382,9 +388,23 @@ class ConsoleView:
         self.console.print(table, justify="center")
         self.console.print("\n[bold white on #767676] Press W to go up, S to go down, Tab to switch column, Enter to open in analysis mode, R to run game with 1sec delay, Q to quit[/]", justify="center")
 
+    def extract_date_from_filename(self, filename: str) -> datetime:
+        splits = filename.split('_')[1:]
+        date_str = splits[0] + "-" + splits[1]
+        date_str = date_str.replace('-', ' ')[:-4]
+        return datetime.strptime(date_str, "%d %m %Y %H %M %S")
+
     def display_history(self, bot_files: List[str], multiplayer_files: List[str]) -> Tuple[HistoryOption, Union[str, None], int]:
         self.clear_terminal()
-        self.display_text(4, self.game_history_text, animated=True, delay=0)
+
+        bot_files = sorted(bot_files[:25], key=self.extract_date_from_filename)
+        multiplayer_files = sorted(multiplayer_files[:25], key=self.extract_date_from_filename)
+
+        if not self.animated_text_displayed_history:
+            self.display_text(4, self.game_history_text, animated=True, delay=0.001)
+            self.animated_text_displayed_history = True
+        else:
+            self.display_text(4, self.game_history_text)
 
         selected_index = [1, 0]
 
