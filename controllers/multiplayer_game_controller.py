@@ -22,6 +22,7 @@ class MultiplayerGameController:
         self.view.display_board(self.board)
 
         if not self.initialize_connection():
+            self.view.end_game("Unable to connect to the server. Make sure the server is running.")
             return
 
         flip_board = self.initialize_game()
@@ -99,7 +100,6 @@ class MultiplayerGameController:
 
     def initialize_connection(self) -> bool:
         if not self.client.connect():
-            self.view.display_message("Unable to connect to the server. Make sure the server is running.")
             return False
 
         data = self.client.receive_message()
