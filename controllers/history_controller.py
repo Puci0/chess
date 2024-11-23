@@ -69,13 +69,13 @@ class HistoryController:
                     self.view.display_board(board)
                     self.view.display_message("That was last move!\n")
             elif action == 'backward':
-                if current_index - 1 >= 0:
+                if current_index >= 0:
                     current_index -= 1
                     board.pop()
                     self.view.display_board(board)
                 else:
                     self.view.display_board(board)
-                    self.view.display_message("That was first move!\n")
+                    # self.view.display_message("That was first move!\n")
             else:
                 self.view.end_game()
                 break

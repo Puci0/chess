@@ -75,7 +75,9 @@ class MultiplayerGameController:
 
         self.view.display_board(self.board, flip=flip_board)
         self.client.send_message(move)
-        self.file_manager.save_move(self.filename, move)
+
+        if result != MoveResult.GAME_ENDED:
+            self.file_manager.save_move(self.filename, move)
 
         return result
 
@@ -89,7 +91,9 @@ class MultiplayerGameController:
 
         result = self.board.move(move)
         self.view.display_board(self.board, flip=flip_board)
-        self.file_manager.save_move(self.filename, move)
+
+        if result != MoveResult.GAME_ENDED:
+            self.file_manager.save_move(self.filename, move)
 
         return result
 

@@ -397,8 +397,8 @@ class ConsoleView:
     def display_history(self, bot_files: List[str], multiplayer_files: List[str]) -> Tuple[HistoryOption, Union[str, None], int]:
         self.clear_terminal()
 
-        bot_files = sorted(bot_files[:25], key=self.extract_date_from_filename)
-        multiplayer_files = sorted(multiplayer_files[:25], key=self.extract_date_from_filename)
+        bot_files = sorted(bot_files, key=self.extract_date_from_filename)[-25:]
+        multiplayer_files = sorted(multiplayer_files, key=self.extract_date_from_filename)[-25:]
 
         if not self.animated_text_displayed_history:
             self.display_text(4, self.game_history_text, animated=True, delay=0.001)

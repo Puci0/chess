@@ -56,7 +56,9 @@ class BotGameController:
             break
 
         self.view.display_board(self.board)
-        self.file_manager.save_move(self.filename, move)
+
+        if result != MoveResult.GAME_ENDED:
+            self.file_manager.save_move(self.filename, move)
 
         return result
 
