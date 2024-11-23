@@ -16,7 +16,7 @@ class ChessController:
             pass
 
         self.bot_game_controller = BotGameController(self.view)
-        self.multiplayer_game_controller = MultiplayerGameController(self.view)
+        self.multiplayer_game_controller = None
         self.history_controller = HistoryController(self.view)
         self.is_running = False
 
@@ -30,6 +30,7 @@ class ChessController:
                 self.bot_game_controller.run()
 
             elif selected_option == MenuOption.PLAY_MULTIPLAYER:
+                self.multiplayer_game_controller = MultiplayerGameController(self.view)
                 self.multiplayer_game_controller.run()
 
             elif selected_option == MenuOption.DISPLAY_HISTORY:
