@@ -74,11 +74,15 @@ class MultiplayerGameController:
 
             break
 
-        self.view.display_board(self.board, flip=flip_board)
         self.client.send_message(move)
+
+        play_sound = False
 
         if result != MoveResult.GAME_ENDED:
             self.file_manager.save_move(self.filename, move)
+            play_sound = True
+
+        self.view.display_board(self.board, flip=flip_board, play_sound=play_sound)
 
         return result
 
@@ -86,15 +90,15 @@ class MultiplayerGameController:
         self.view.display_message("Waiting for opponent's move...")
 
         move = self.client.receive_message()
-
-        # if move is None:
-        #     return MoveResult.GAME_ENDED
-
         result = self.board.move(move)
-        self.view.display_board(self.board, flip=flip_board)
+
+        play_sound = False
 
         if result != MoveResult.GAME_ENDED:
             self.file_manager.save_move(self.filename, move)
+            play_sound = True
+
+        self.view.display_board(self.board, flip=flip_board, play_sound=play_sound)
 
         return result
 

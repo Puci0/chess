@@ -55,10 +55,13 @@ class BotGameController:
 
             break
 
-        self.view.display_board(self.board)
+        play_sound = False
 
         if result != MoveResult.GAME_ENDED:
             self.file_manager.save_move(self.filename, move)
+            play_sound = True
+
+        self.view.display_board(self.board, play_sound=play_sound)
 
         return result
 
@@ -68,7 +71,7 @@ class BotGameController:
         time.sleep(1.5)
         result = self.board.move(move)
 
-        self.view.display_board(self.board)
+        self.view.display_board(self.board, play_sound=True)
         self.file_manager.save_move(self.filename, move)
 
         return result

@@ -5,6 +5,8 @@ from rich.table import Table
 from rich import box
 from models import Color, Piece, MenuOption, HistoryOption, CustomBoard
 from typing import Tuple, List, Union
+import sounddevice as sd
+import soundfile as sf
 import chess
 import os
 import msvcrt
@@ -28,7 +30,6 @@ class ConsoleView:
         color_1 = (144, 140, 140)
         color_2 = (112, 108, 100)
         background_color = (61, 61, 59)
-        # background_color = (43, 28, 40)
 
         curses.init_color(10, round(color_1[0] * 3.92), round(color_1[1] * 3.92), round(color_1[2] * 3.92))
         curses.init_color(11, round(color_2[0] * 3.92), round(color_2[1] * 3.92), round(color_2[2] * 3.92))
@@ -151,6 +152,11 @@ class ConsoleView:
 
         self.animated_text_displayed_menu = False
         self.animated_text_displayed_history = False
+        self.move_sound = "./models/move_sound.mp3"
+        self.data, self.fs = sf.read(self.move_sound, dtype='float32')
+
+    def __play_move_sound(self):
+        sd.play(self.data, self.fs)
 
     def __initialize_screen(self, screen) -> None:
         self.screen = screen
@@ -160,19 +166,19 @@ class ConsoleView:
         self.offset = x_offset
 
     def display_menu(self) -> MenuOption:
-        self.clear_terminal()
+        self.__clear_terminal()
         selected_index = 0
 
         if not self.animated_text_displayed_menu:
-            self.display_text(4, self.chess_text, animated=True, delay=0.02)
-            self.draw_table(selected_index)
-            self.display_text(22, self.pieces, animated=True, delay=0)
+            self.__display_text(4, self.chess_text, animated=True, delay=0.02)
+            self.__draw_table(selected_index)
+            self.__display_text(22, self.pieces, animated=True, delay=0)
             self.animated_text_displayed_menu = True
 
         while True:
-            self.display_text(4, self.chess_text)
-            self.draw_table(selected_index)
-            self.display_text(22, self.pieces)
+            self.__display_text(4, self.chess_text)
+            self.__draw_table(selected_index)
+            self.__display_text(22, self.pieces)
 
             key = msvcrt.getch()
             if key == b'w' and selected_index > 0:
@@ -180,13 +186,13 @@ class ConsoleView:
                 self.console.clear()
                 for _ in self.chess_text:
                     self.console.print(Text(" ", style="on gray25"))
-                self.draw_table(selected_index, True)
+                self.__draw_table(selected_index, True)
             elif key == b's' and selected_index < len(self.options) - 1:
                 selected_index += 1
                 self.console.clear()
                 for _ in self.chess_text:
                     self.console.print(Text(" ", style="on gray25"))
-                self.draw_table(selected_index, True)
+                self.__draw_table(selected_index, True)
             elif key == b'\r':
                 if selected_index == 0:
                     return MenuOption.PLAY_WITH_BOT
@@ -199,7 +205,7 @@ class ConsoleView:
                     os.system('cls' if os.name == 'nt' else 'clear')
                     return MenuOption.LEAVE_THE_GAME
 
-    def display_text(self, n: int, text_lines: list, animated: bool = False, delay: float = 0.02) -> None:
+    def __display_text(self, n: int, text_lines: list, animated: bool = False, delay: float = 0.02) -> None:
         terminal_width = shutil.get_terminal_size().columns
         displayed_text = []
 
@@ -225,7 +231,7 @@ class ConsoleView:
             self.console.clear()
             self.console.print(styled_text)
 
-    def draw_table(self, selected_index: int, margin: bool = False) -> None:
+    def __draw_table(self, selected_index: int, margin: bool = False) -> None:
         highlight_style = "rgb(123,129,129) on gray100"
 
         table = Table(show_header=False, box=box.ROUNDED, show_lines=True)
@@ -268,7 +274,7 @@ class ConsoleView:
         else:
             return 'quit'
 
-    def display_board(self, board: CustomBoard, flip: bool=False) -> None:
+    def display_board(self, board: CustomBoard, flip: bool=False, play_sound: bool = False) -> None:
         self.screen.clear()
         self.screen.bkgd(curses.color_pair(24))
 
@@ -276,7 +282,7 @@ class ConsoleView:
         self.screen.addstr("\n")
 
         eval = board.get_eval()
-        self.display_eval(eval)
+        self.__display_eval(eval)
 
         column_labels = "abcdefgh"
 
@@ -340,7 +346,10 @@ class ConsoleView:
 
         self.screen.refresh()
 
-    def display_eval(self, eval_score) -> None:
+        if play_sound:
+            self.__play_move_sound()
+
+    def __display_eval(self, eval_score) -> None:
         bar_length = 11 * 8
         max_eval = 25
 
@@ -360,10 +369,10 @@ class ConsoleView:
             self.screen.addstr('\n')
         self.screen.addstr('\n')
 
-    def clear_terminal(self) -> None:
+    def __clear_terminal(self) -> None:
         os.system('cls')
 
-    def display_files(self, files1: List, files2: List, selected_index: List[int]) -> None:
+    def __display_files(self, files1: List, files2: List, selected_index: List[int]) -> None:
         # terminal_width = shutil.get_terminal_size().columns
         highlight_style = "rgb(123,129,129) on gray100"
 
@@ -387,29 +396,29 @@ class ConsoleView:
         self.console.print(table, justify="center")
         self.console.print("\n[bold white on #767676] Press W to go up, S to go down, Tab to switch column, Enter to open in analysis mode, R to run game with 1sec delay, Q to quit[/]", justify="center")
 
-    def extract_date_from_filename(self, filename: str) -> datetime:
+    def __extract_date_from_filename(self, filename: str) -> datetime:
         splits = filename.split('_')[1:]
         date_str = splits[0] + "-" + splits[1]
         date_str = date_str.replace('-', ' ')[:-4]
         return datetime.strptime(date_str, "%d %m %Y %H %M %S")
 
     def display_history(self, bot_files: List[str], multiplayer_files: List[str]) -> Tuple[HistoryOption, Union[str, None], int]:
-        self.clear_terminal()
+        self.__clear_terminal()
 
-        bot_files = sorted(bot_files, key=self.extract_date_from_filename)[-25:]
-        multiplayer_files = sorted(multiplayer_files, key=self.extract_date_from_filename)[-25:]
+        bot_files = sorted(bot_files, key=self.__extract_date_from_filename)[-25:]
+        multiplayer_files = sorted(multiplayer_files, key=self.__extract_date_from_filename)[-25:]
 
         if not self.animated_text_displayed_history:
-            self.display_text(4, self.game_history_text, animated=True, delay=0.001)
+            self.__display_text(4, self.game_history_text, animated=True, delay=0.001)
             self.animated_text_displayed_history = True
         else:
-            self.display_text(4, self.game_history_text)
+            self.__display_text(4, self.game_history_text)
 
         selected_index = [1, 0]
 
         while True:
             self.console.clear()
-            self.display_files(bot_files, multiplayer_files, selected_index)
+            self.__display_files(bot_files, multiplayer_files, selected_index)
 
             choice = msvcrt.getch()
 
