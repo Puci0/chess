@@ -12,16 +12,14 @@ class ServerClient:
         self.connected = False
 
     def connect(self) -> bool:
-        # try:
-        # with open('test.txt', 'a') as f:
-        #     f.write(str(type(self.server_socket)))
-        self.server_socket.connect((self.server_ip, self.server_port))
-        self.connected = True
-        return True
-        # except (socket.error, ConnectionRefusedError):
+        try:
+            self.server_socket.connect((self.server_ip, self.server_port))
+            self.connected = True
+            return True
 
-        self.connected = False
-        return False
+        except (socket.error, ConnectionRefusedError):
+            self.connected = False
+            return False
 
     def close(self) -> None:
         if self.connected:
