@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 
 
 class Config(dict):
@@ -12,6 +13,8 @@ class Config(dict):
         return cls._instance
 
     def load_config(self, config_file: str = "config/config.json") -> None:
+        config_file = self.resource_path(config_file)
+
         if os.path.exists(config_file):
             try:
                 with open(config_file, "r") as f:
@@ -21,3 +24,8 @@ class Config(dict):
                 print("Error decoding the config file. Please check the format.")
         else:
             print(f"Config file '{config_file}' not found. Using default configuration.")
+
+    def resource_path(self, relative_path):
+        if hasattr(sys, '_MEIPASS'):
+            return os.path.join(sys._MEIPASS, relative_path)
+        return os.path.join(os.path.abspath("."), relative_path)

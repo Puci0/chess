@@ -14,6 +14,7 @@ import shutil
 import time
 import curses
 import numpy as np
+import sys
 
 
 class ConsoleView:
@@ -152,8 +153,13 @@ class ConsoleView:
 
         self.animated_text_displayed_menu = False
         self.animated_text_displayed_history = False
-        self.move_sound = "./models/move_sound.mp3"
+        self.move_sound = self.resource_path("./models/move_sound.mp3")
         self.data, self.fs = sf.read(self.move_sound, dtype='float32')
+
+    def resource_path(self, relative_path):
+        if hasattr(sys, '_MEIPASS'):
+            return os.path.join(sys._MEIPASS, relative_path)
+        return os.path.join(os.path.abspath("."), relative_path)
 
     def __play_move_sound(self):
         sd.play(self.data, self.fs)
