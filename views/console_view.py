@@ -250,9 +250,9 @@ class ConsoleView:
                 table.add_row(Text(option))
         if not margin:
             self.console.print(table, justify="center", overflow="crop")
-        else:
-            self.console.print("\n")
-            self.console.print(table, justify="center", overflow="crop")
+        # else:
+        #     self.console.print("\n")
+        #     self.console.print(table, justify="center", overflow="crop")
 
     def enter_move(self) -> str:
         self.display_message("Enter a move: ")

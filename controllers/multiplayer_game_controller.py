@@ -114,11 +114,11 @@ class MultiplayerGameController:
 
     def initialize_game(self) -> bool:
         data = self.client.receive_message()
-        flip_board = bool(int(data))
-
-        data = self.client.receive_message()
         self.view.display_board(self.board)
         if data == 'Rozpoczynanie partii.':
             self.view.display_message('Rozpoczynanie partii.')
+
+        data = self.client.receive_message()
+        flip_board = bool(int(data))
 
         return flip_board
