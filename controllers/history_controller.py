@@ -4,13 +4,13 @@ import time
 from typing import List
 from views import ConsoleView
 from models import CustomBoard, HistoryOption
+from .command import CommandManager, MoveCommand
 
 
 class HistoryController:
     def __init__(self, view: ConsoleView) -> None:
         self.view = view
 
-        # self.history_games_path = (pathlib.Path(__file__).parent.parent / 'history').resolve()
         self.history_games_path = pathlib.Path.home() / "Documents" / "ChessHistory"
         self.history_games_path.mkdir(exist_ok=True)
 
@@ -54,9 +54,12 @@ class HistoryController:
         return moves
 
     def analise_game(self, moves: List[str]) -> None:
-        current_index = -1
         board = CustomBoard()
         self.view.display_board(board)
+
+        command_manager = CommandManager()
+
+        current_index = -1
 
         while True:
             action = self.view.get_user_input_for_analysis()
@@ -64,7 +67,10 @@ class HistoryController:
             if action == 'forward':
                 if current_index + 1 < len(moves):
                     current_index += 1
-                    board.push_san(moves[current_index])
+
+                    move = MoveCommand(board, moves[current_index])
+                    command_manager.execute_command(move)
+
                     self.view.display_board(board)
                 else:
                     self.view.display_board(board)
@@ -72,21 +78,27 @@ class HistoryController:
             elif action == 'backward':
                 if current_index >= 0:
                     current_index -= 1
-                    board.pop()
+
+                    command_manager.undo()
+
                     self.view.display_board(board)
                 else:
                     self.view.display_board(board)
-                    # self.view.display_message("That was first move!\n")
             else:
                 self.view.end_game()
                 break
 
     def automatic_game(self, moves: List[str]) -> None:
+        command_manager = CommandManager()
+
         board = CustomBoard()
         self.view.display_board(board)
         for move in moves:
             time.sleep(1)
-            board.push_san(move)
+
+            move = MoveCommand(board, move)
+            command_manager.execute_command(move)
+
             self.view.display_board(board)
 
         self.view.end_game("Press any key to continue...")
