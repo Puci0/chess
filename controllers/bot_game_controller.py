@@ -23,9 +23,9 @@ class BotGameController:
             self.view.display_board(self.board)
 
             if self.current_player == Player.HUMAN:
-                result = self.handle_human_turn()
+                result = self.__handle_human_turn()
             else:
-                result = self.handle_bot_turn()
+                result = self.__handle_bot_turn()
 
             if result == MoveResult.GAME_ENDED:
                 self.view.end_game('Surrender!')
@@ -43,7 +43,7 @@ class BotGameController:
 
             self.current_player = Player.BOT if self.current_player == Player.HUMAN else Player.HUMAN
 
-    def handle_human_turn(self) -> MoveResult:
+    def __handle_human_turn(self) -> MoveResult:
         while True:
             move = self.view.enter_move()
             result = self.board.move(move)
@@ -65,7 +65,7 @@ class BotGameController:
 
         return result
 
-    def handle_bot_turn(self) -> MoveResult:
+    def __handle_bot_turn(self) -> MoveResult:
         self.view.display_message('Bot is thinking...')
         move = self.board.get_bot_move()
         time.sleep(1.5)

@@ -21,19 +21,19 @@ class MultiplayerGameController:
 
         self.view.display_board(self.board)
 
-        if not self.initialize_connection():
+        if not self.__initialize_connection():
             self.view.end_game("Unable to connect to the server. Make sure the server is running.")
             return
 
-        flip_board = self.initialize_game()
+        flip_board = self.__initialize_game()
 
         while self.is_running:
             self.view.display_board(self.board, flip=flip_board)
 
-            if self.is_player_turn():
-                result = self.handle_player_turn(flip_board)
+            if self.__is_player_turn():
+                result = self.__handle_player_turn(flip_board)
             else:
-                result = self.handle_opponent_turn(flip_board)
+                result = self.__handle_opponent_turn(flip_board)
 
             if result == MoveResult.GAME_ENDED:
                 message = 'Surrender!' if self.current_player == Player.PLAYER_1 else 'Opponent surrendered!'
@@ -52,7 +52,7 @@ class MultiplayerGameController:
 
         self.client.close()
 
-    def is_player_turn(self) -> bool:
+    def __is_player_turn(self) -> bool:
         data = self.client.receive_message()
 
         if data == 'Wprowadz swoj ruch: ':
@@ -62,7 +62,7 @@ class MultiplayerGameController:
             self.current_player = Player.PLAYER_2
             return False
 
-    def handle_player_turn(self, flip_board: bool) -> MoveResult:
+    def __handle_player_turn(self, flip_board: bool) -> MoveResult:
         while True:
             move = self.view.enter_move()
             result = self.board.move(move)
@@ -86,7 +86,7 @@ class MultiplayerGameController:
 
         return result
 
-    def handle_opponent_turn(self, flip_board: bool) -> MoveResult:
+    def __handle_opponent_turn(self, flip_board: bool) -> MoveResult:
         self.view.display_message("Waiting for opponent's move...")
 
         move = self.client.receive_message()
@@ -102,7 +102,7 @@ class MultiplayerGameController:
 
         return result
 
-    def initialize_connection(self) -> bool:
+    def __initialize_connection(self) -> bool:
         if not self.client.connect():
             return False
 
@@ -112,7 +112,7 @@ class MultiplayerGameController:
 
         return True
 
-    def initialize_game(self) -> bool:
+    def __initialize_game(self) -> bool:
         data = self.client.receive_message()
         self.view.display_board(self.board)
         if data == 'Rozpoczynanie partii.':

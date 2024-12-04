@@ -1,3 +1,4 @@
+import pathlib
 from datetime import datetime
 from rich.console import Console
 from rich.text import Text
@@ -153,15 +154,15 @@ class ConsoleView:
 
         self.animated_text_displayed_menu = False
         self.animated_text_displayed_history = False
-        self.move_sound = self.resource_path("./models/move_sound.mp3")
+        self.move_sound = self.__resource_path("./models/move_sound.mp3")
         self.data, self.fs = sf.read(self.move_sound, dtype='float32')
 
-    def resource_path(self, relative_path):
+    def __resource_path(self, relative_path: str) -> os.path:
         if hasattr(sys, '_MEIPASS'):
             return os.path.join(sys._MEIPASS, relative_path)
         return os.path.join(os.path.abspath("."), relative_path)
 
-    def __play_move_sound(self):
+    def __play_move_sound(self) -> None:
         sd.play(self.data, self.fs)
 
     def __initialize_screen(self, screen) -> None:

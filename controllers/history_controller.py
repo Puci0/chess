@@ -39,21 +39,21 @@ class HistoryController:
             else:
                 path = self.multi_games_path / file_name
 
-            moves = self.read_moves(path)
+            moves = self.__read_moves(path)
 
             if selected_option == HistoryOption.ANALISE_GAME:
-                self.analise_game(moves)
+                self.__analise_game(moves)
 
             elif selected_option == HistoryOption.AUTOMATIC_GAME:
-                self.automatic_game(moves)
+                self.__automatic_game(moves)
 
-    def read_moves(self, file_path: pathlib.Path) -> List[str]:
+    def __read_moves(self, file_path: pathlib.Path) -> List[str]:
         with open(file_path, 'r') as f:
             moves = [move.strip() for move in f.readlines()]
 
         return moves
 
-    def analise_game(self, moves: List[str]) -> None:
+    def __analise_game(self, moves: List[str]) -> None:
         board = CustomBoard()
         self.view.display_board(board)
 
@@ -88,7 +88,7 @@ class HistoryController:
                 self.view.end_game()
                 break
 
-    def automatic_game(self, moves: List[str]) -> None:
+    def __automatic_game(self, moves: List[str]) -> None:
         command_manager = CommandManager()
 
         board = CustomBoard()

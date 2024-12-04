@@ -4,7 +4,6 @@ import pathlib
 
 class FileManager:
     def __init__(self):
-        # self.history_games_path = (pathlib.Path(__file__).parent.parent / 'history').resolve()
         self.history_games_path = pathlib.Path.home() / "Documents" / "ChessHistory"
         self.history_games_path.mkdir(exist_ok=True)
 
