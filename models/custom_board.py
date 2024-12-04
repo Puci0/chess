@@ -4,6 +4,20 @@ from config import Config
 from .game_enums import MoveResult
 
 
+def validate_decorator(func):
+    def wrapper(self, move: str):
+        if move.strip().lower() == 'ff':
+            return MoveResult.GAME_ENDED
+
+        try:
+            chess_move = self.parse_san(move)
+            if chess_move in self.legal_moves:
+                return func(self,chess_move)
+        except ValueError:
+            return MoveResult.INVALID_MOVE
+
+    return wrapper
+
 class CustomBoard(chess.Board):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -44,15 +58,9 @@ class CustomBoard(chess.Board):
 
         return move
 
-    def move(self, move: str) -> MoveResult:
-        if move.strip().lower() == 'ff':
-            return MoveResult.GAME_ENDED
-
-        if not self.is_move_valid(move):
-            return MoveResult.INVALID_MOVE
-
-        chess_move = self.parse_san(move)
-        self.push(chess_move)
+    @validate_decorator
+    def move(self, move: chess.Move) -> MoveResult:
+        self.push(move)
 
         if self.is_checkmate():
             return MoveResult.MATE
@@ -61,10 +69,10 @@ class CustomBoard(chess.Board):
         else:
             return MoveResult.SUCCESS
 
-    def is_move_valid(self, move: str) -> bool:
-        try:
-            chess_move = self.parse_san(move)
-            if chess_move in self.legal_moves:
-                return True
-        except ValueError:
-            return False
+    # def is_move_valid(self, move: str) -> bool:
+    #     try:
+    #         chess_move = self.parse_san(move)
+    #         if chess_move in self.legal_moves:
+    #             return True
+    #     except ValueError:
+    #         return False
