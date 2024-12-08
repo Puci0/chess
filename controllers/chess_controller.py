@@ -2,9 +2,8 @@ from .history_controller import HistoryController
 from .bot_game_controller import BotGameController
 from .multiplayer_game_controller import MultiplayerGameController
 from config import Config
-from views import ConsoleView
+from views import ConsoleView, GuiView
 from models import MenuOption
-
 
 class ChessController:
     def __init__(self) -> None:
@@ -13,7 +12,7 @@ class ChessController:
         if self.config.get('view_type') == 'console':
             self.view = ConsoleView()
         elif self.config.get('view_type') == 'gui':
-            pass
+            self.view = GuiView()
 
         self.bot_game_controller = BotGameController(self.view)
         self.multiplayer_game_controller = None
