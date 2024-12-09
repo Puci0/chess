@@ -1,5 +1,5 @@
 {
-    "view_type": "gui",
+    "view_type": "console",
     "depth": 4,
     "max_thinking_time": 50
 }
