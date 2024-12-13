@@ -8,7 +8,7 @@ from .command import CommandManager, MoveCommand
 
 
 class HistoryController:
-    def __init__(self, view: ConsoleView) -> None:
+    def __init__(self, view) -> None:
         self.view = view
 
         self.history_games_path = pathlib.Path.home() / "Documents" / "ChessHistory"
@@ -25,11 +25,18 @@ class HistoryController:
     def run(self) -> None:
         self.is_running = True
 
-        while self.is_running:
-            bot_files = os.listdir(self.bot_games_path)
-            multiplayer_files = os.listdir(self.multi_games_path)
+        bot_files = os.listdir(self.bot_games_path)
+        multiplayer_files = os.listdir(self.multi_games_path)
 
-            selected_option, file_name, folder_type = self.view.display_history(bot_files, multiplayer_files)
+        bot_games_dictionary = {}
+        multiplayer_games_dictionary = {}
+        for bot_file in bot_files:
+            bot_games_dictionary[bot_file] = self.count_moves(self.bot_games_path / bot_file)
+        for multiplayer_file in multiplayer_files:
+            multiplayer_games_dictionary[multiplayer_file] = self.count_moves(self.multi_games_path / multiplayer_file)
+
+        while self.is_running:
+            selected_option, file_name, folder_type = self.view.display_history(bot_games_dictionary, multiplayer_games_dictionary)
 
             if selected_option == HistoryOption.QUIT:
                 break
@@ -102,3 +109,7 @@ class HistoryController:
             self.view.display_board(board)
 
         self.view.end_game("Press any key to continue...")
+
+    def count_moves(self, file):
+        with open(file, "r") as f:
+            return len(f.readlines())

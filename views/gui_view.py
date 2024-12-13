@@ -1,6 +1,6 @@
 import pygame
 from models import CustomBoard, MenuOption, HistoryOption
-from typing import List, Union, Tuple
+from typing import List, Union, Tuple, Dict
 import sounddevice as sd
 import soundfile as sf
 import pathlib
@@ -8,7 +8,6 @@ import chess
 import os
 import sys
 from datetime import datetime
-
 class GuiView:
     def __init__(self):
         pygame.init()
@@ -222,11 +221,12 @@ class GuiView:
         date_str = date_str.replace('-', ' ')[:-4]
         return datetime.strptime(date_str, "%d %m %Y %H %M %S")
 
-    def display_history(self, bot_files: List[str], multiplayer_files: List[str]) -> Tuple[HistoryOption, Union[str, None], int]:
+    def display_history(self, bot_files: Dict[str,int], multiplayer_files: Dict[str,int]) -> Tuple[HistoryOption, Union[str, None], int]:
         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-        bot_files = sorted(bot_files, key=self.__extract_date_from_filename)[-25:]
-        multiplayer_files = sorted(multiplayer_files, key=self.__extract_date_from_filename)[-25:]
-
+        bot_files_list = sorted(bot_files.keys(), key=self.__extract_date_from_filename)[-8:]
+        multiplayer_files_list = sorted(multiplayer_files.keys(), key=self.__extract_date_from_filename)[-8:]
+        bot_files = {file: bot_files[file] for file in bot_files_list}
+        multiplayer_files = {file: multiplayer_files[file] for file in multiplayer_files_list}
         font = pygame.font.Font(None, 30)
 
         while True:
@@ -247,8 +247,11 @@ class GuiView:
             bot_file_rects = []
             analize_bot_rects = []
             auto_bot_rects = []
-            for file in bot_files:
-                text_surface = font.render(f"Bot {' ' * 15} Skibibot {' ' * 53} 40 {' ' * 20 + str(self.__extract_date_from_filename(file))}", True, (0, 0, 0))
+            for file,count in bot_files.items():
+                if count < 10:
+                    text_surface = font.render(f"Bot {' ' * 15} Skibibot {' ' * 53} {count} {' ' * 22 + str(self.__extract_date_from_filename(file))}", True, (0, 0, 0))
+                else:
+                    text_surface = font.render(f"Bot {' ' * 15} Skibibot {' ' * 53} {count} {' ' * 20 + str(self.__extract_date_from_filename(file))}",True, (0, 0, 0))
                 text_height = text_surface.get_height()
                 rect = pygame.Rect(150, y_offset, 900, text_height + 10)
                 bot_file_rects.append((rect, file))
@@ -266,7 +269,7 @@ class GuiView:
 
                 button_rect2 = pygame.Rect(button_x_start + button_width + button_gap + 180, rect.y + 5, button_width,button_height)
                 auto_bot_rects.append((button_rect2,file))
-                pygame.draw.rect(self.screen, (85, 175, 218), button_rect2)
+                pygame.draw.rect(self.screen, (78, 133, 222), button_rect2)
                 pygame.draw.rect(self.screen, (0, 0, 0), button_rect2, 2)
 
                 if button_rect1.collidepoint(mouse_pos):
@@ -295,8 +298,11 @@ class GuiView:
             multiplayer_file_rects = []
             analize_multiplayer_rects = []
             auto_multiplayers_rects = []
-            for file in multiplayer_files:
-                text_surface = font.render(f"Online {' ' * 10} Pucio {' ' * 57} 35 {' ' * 20 + str(self.__extract_date_from_filename(file))}", True, (0, 0, 0))
+            for file,count in multiplayer_files.items():
+                if count < 10:
+                    text_surface = font.render(f"Online {' ' * 10} Pucio {' ' * 57} {count} {' ' * 22 + str(self.__extract_date_from_filename(file))}", True, (0, 0, 0))
+                else:
+                    text_surface = font.render(f"Online {' ' * 10} Pucio {' ' * 57} {count} {' ' * 20 + str(self.__extract_date_from_filename(file))}",True, (0, 0, 0))
                 text_height = text_surface.get_height()
                 rect = pygame.Rect(150, y_offset, 900, text_height + 10)
                 multiplayer_file_rects.append((rect, file))
@@ -314,7 +320,7 @@ class GuiView:
 
                 button_rect2 = pygame.Rect(button_x_start + button_width + button_gap + 180, rect.y + 5, button_width,button_height)
                 auto_multiplayers_rects.append((button_rect2,file))
-                pygame.draw.rect(self.screen, (85, 175, 218), button_rect2)
+                pygame.draw.rect(self.screen, (78, 133, 222), button_rect2)
                 pygame.draw.rect(self.screen, (0, 0, 0), button_rect2, 2)
 
                 if button_rect1.collidepoint(mouse_pos):
@@ -337,7 +343,7 @@ class GuiView:
                 text2_x = button_rect2.x + (button_width - text2_width) // 2
                 text2_y = button_rect2.y + (button_height - text2_height) // 2
                 self.screen.blit(text2, (text2_x, text2_y))
-                y_offset += 40
+                y_offset += 35
 
             pygame.display.flip()
 
