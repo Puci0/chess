@@ -139,6 +139,8 @@ class GuiView:
         pass
 
     def display_board(self, board: CustomBoard, flip: bool=False, play_sound: bool = False) -> None:
+        self.screen.fill((61, 61, 59))
+
         eval = board.get_eval()
         self.__display_eval(eval)
 
@@ -213,6 +215,7 @@ class GuiView:
         bar_y = 30
         pygame.draw.rect(self.screen, white_color, (bar_x + self.board_x_offset, bar_y, white_width, bar_height))
         pygame.draw.rect(self.screen, black_color, (bar_x + white_width + self.board_x_offset, bar_y, black_width, bar_height))
+
     def __extract_date_from_filename(self, filename: str) -> datetime:
         splits = filename.split('_')[1:]
         date_str = splits[0] + "-" + splits[1]
