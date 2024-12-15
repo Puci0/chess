@@ -35,11 +35,12 @@ class GuiView:
             # "black": (181, 136, 99),
             "white": (157, 156, 154),
             "black": (126, 125, 123),
+            'highlight': (185, 202, 67),
         }
         self.board_x_offset = (self.SCREEN_WIDTH - (self.square_size * 8)) // 2
         self.board_y_offset = 100
 
-        self.font = pygame.font.SysFont('Arial', 18)
+        self.font = pygame.font.SysFont('Arial', 16)
         self.text_color = (0, 0, 0)
 
         self.piece_images = self.load_piece_images()
@@ -135,8 +136,67 @@ class GuiView:
     def __play_move_sound(self) -> None:
         sd.play(self.data, self.fs)
 
-    def enter_move(self) -> str:
+    def display_message(self, message: str) -> None:
         pass
+
+    def enter_move(self) -> str:
+        selected_square = None
+
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    x, y = pygame.mouse.get_pos()
+
+                    col = (x - self.board_x_offset) // self.square_size
+                    row = (y - self.board_y_offset) // self.square_size
+
+                    if 0 <= col < 8 and 0 <= row < 8:
+                        clicked_square = (row, col)
+
+                        if selected_square is None:
+                            selected_square = clicked_square
+                            self.__highlight_square(selected_square)
+                        elif selected_square == clicked_square:
+                            self.__unhighlight_square(selected_square)
+                            selected_square = None
+                        else:
+                            start_pos = self.__square_to_notation(selected_square)
+                            end_pos = self.__square_to_notation(clicked_square)
+                            move = f"{start_pos}{end_pos}"
+
+                            self.__unhighlight_square(selected_square)
+
+                            return move
+
+    def __square_to_notation(self, square: Tuple) -> str:
+        row, col = square
+
+        column_label = chr(ord('a') + col)
+        row_label = str(8 - row)
+
+        return f"{column_label}{row_label}"
+
+    def __highlight_square(self, selected_square: Tuple) -> None:
+        row, col = selected_square
+        x = col * self.square_size + self.board_x_offset
+        y = row * self.square_size + self.board_y_offset
+
+        pygame.draw.rect(self.screen, self.board_colors['highlight'], (x, y, self.square_size, self.square_size), 3)
+        pygame.display.update((x, y, self.square_size, self.square_size))
+
+    def __unhighlight_square(self, selected_square: Tuple) -> None:
+        row, col = selected_square
+        x = col * self.square_size + self.board_x_offset
+        y = row * self.square_size + self.board_y_offset
+
+        is_white_square = (row + col) % 2 == 0
+        color = self.board_colors["white"] if is_white_square else self.board_colors["black"]
+
+        pygame.draw.rect(self.screen, color, (x, y, self.square_size, self.square_size), 3)
+        pygame.display.update((x, y, self.square_size, self.square_size))
 
     def display_board(self, board: CustomBoard, flip: bool=False, play_sound: bool = False) -> None:
         self.screen.fill((61, 61, 59))
@@ -167,11 +227,11 @@ class GuiView:
 
                 if col == 0:
                     text_surface = self.font.render(row_number, True, self.text_color)
-                    self.screen.blit(text_surface, (self.board_x_offset + self.square_size * 0.03, row * self.square_size + self.square_size * 0.03 + self.board_y_offset))
+                    self.screen.blit(text_surface, (self.board_x_offset + self.square_size * 0.04, row * self.square_size + self.square_size * 0.03 + self.board_y_offset))
 
                 if row == 7:
                     text_surface = self.font.render(column_labels[col], True, self.text_color)
-                    self.screen.blit(text_surface, (self.board_x_offset + + self.square_size * 0.89 + col * self.square_size, row * self.square_size + self.square_size * 0.8 + self.board_y_offset))
+                    self.screen.blit(text_surface, (self.board_x_offset + self.square_size * 0.88 + col * self.square_size, row * self.square_size + self.square_size * 0.78 + self.board_y_offset))
 
                 piece = board.piece_at(chess.square(col, 7 - row))
 
