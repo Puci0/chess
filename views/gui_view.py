@@ -138,6 +138,65 @@ class GuiView:
     def display_message(self, message: str) -> None:
         pass
 
+    def end_game(self, message: str) -> None:
+        dialog_width = 270
+        dialog_height = 130
+
+        # Kolory i styl
+        dialog_color = (50, 50, 50)
+        text_color = (255, 255, 255)
+        button_color = (200, 200, 200)
+        button_hover_color = (180, 180, 180)
+
+        # Utwórz fonty
+        font = pygame.font.SysFont(None, 30)
+        button_font = pygame.font.SysFont(None, 25)
+
+        # Pozycjonowanie okienka dialogowego na środku ekranu
+        dialog_x = (self.screen.get_width() - dialog_width) // 2
+        dialog_y = (self.screen.get_height() - dialog_height) // 2
+        dialog_rect = pygame.Rect(dialog_x, dialog_y, dialog_width, dialog_height)
+
+        # Przyciski
+        button_width = 150
+        button_height = 50
+        button_x = dialog_x + (dialog_width - button_width) // 2
+        button_y = dialog_y + dialog_height - button_height - 20
+        button_rect = pygame.Rect(button_x, button_y, button_width, button_height)
+
+        running = True
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if button_rect.collidepoint(pygame.mouse.get_pos()):
+                        running = False
+
+            # Rysowanie tła okienka dialogowego
+            pygame.draw.rect(self.screen, dialog_color, dialog_rect, border_radius=10)
+
+            # Rysowanie wiadomości
+            message_surface = font.render(message, True, text_color)
+            message_rect = message_surface.get_rect(center=(dialog_x + dialog_width // 2, dialog_y + dialog_height // 3 - 10))
+            self.screen.blit(message_surface, message_rect)
+
+            # Sprawdź, czy mysz jest nad przyciskiem
+            mouse_over_button = button_rect.collidepoint(pygame.mouse.get_pos())
+            current_button_color = button_hover_color if mouse_over_button else button_color
+
+            # Rysowanie przycisku
+            pygame.draw.rect(self.screen, current_button_color, button_rect, border_radius=5)
+
+            # Rysowanie tekstu na przycisku
+            button_text_surface = button_font.render("Wróć do menu", True, text_color)
+            button_text_rect = button_text_surface.get_rect(center=button_rect.center)
+            self.screen.blit(button_text_surface, button_text_rect)
+
+            # Odśwież tylko dialog i przycisk
+            pygame.display.update([dialog_rect, button_rect])
+
     def enter_move(self) -> str:
         selected_square = None
 
@@ -165,8 +224,6 @@ class GuiView:
                             start_pos = self.__square_to_notation(selected_square)
                             end_pos = self.__square_to_notation(clicked_square)
                             move = f"{start_pos}{end_pos}"
-
-                            self.__unhighlight_square(selected_square)
 
                             return move
 
