@@ -2,6 +2,7 @@ import time
 from views import ConsoleView
 from .file_manager import FileManager
 from models import CustomBoard, Player, MoveResult
+from .command import CommandManager, MoveCommand
 
 
 class BotGameController:
@@ -17,6 +18,7 @@ class BotGameController:
         self.is_running = True
         self.filename = self.file_manager.get_new_filename('bot')
         self.board = CustomBoard()
+        self.command_manager = CommandManager()
         self.current_player = Player.HUMAN
 
         while self.is_running:
@@ -46,7 +48,9 @@ class BotGameController:
     def __handle_human_turn(self) -> MoveResult:
         while True:
             move = self.view.enter_move()
-            result = self.board.move(move)
+
+            move_command = MoveCommand(self.board, move)
+            result = self.command_manager.execute_command(move_command)
 
             if result == MoveResult.INVALID_MOVE:
                 self.view.display_board(self.board)
@@ -69,7 +73,9 @@ class BotGameController:
         self.view.display_message('Bot is thinking...')
         move = self.board.get_bot_move()
         time.sleep(1.5)
-        result = self.board.move(move)
+
+        move_command = MoveCommand(self.board, move)
+        result = self.command_manager.execute_command(move_command)
 
         self.view.display_board(self.board, play_sound=True)
         self.file_manager.save_move(self.filename, move)

@@ -2,6 +2,7 @@ from .file_manager import FileManager
 from .server_client import ServerClient
 from models import CustomBoard, MoveResult, Player
 from views import ConsoleView
+from .command import CommandManager, MoveCommand
 
 
 class MultiplayerGameController:
@@ -18,6 +19,7 @@ class MultiplayerGameController:
         self.is_running = True
         self.filename = self.file_manager.get_new_filename('multiplayer')
         self.board = CustomBoard()
+        self.command_manager = CommandManager()
 
         self.view.display_board(self.board)
 
@@ -65,7 +67,9 @@ class MultiplayerGameController:
     def __handle_player_turn(self, flip_board: bool) -> MoveResult:
         while True:
             move = self.view.enter_move()
-            result = self.board.move(move)
+
+            move_command = MoveCommand(self.board, move)
+            result = self.command_manager.execute_command(move_command)
 
             if result == MoveResult.INVALID_MOVE:
                 self.view.display_board(self.board, flip=flip_board)
@@ -90,7 +94,9 @@ class MultiplayerGameController:
         self.view.display_message("Waiting for opponent's move...")
 
         move = self.client.receive_message()
-        result = self.board.move(move)
+
+        move_command = MoveCommand(self.board, move)
+        result = self.command_manager.execute_command(move_command)
 
         play_sound = False
 
