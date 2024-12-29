@@ -8,6 +8,8 @@ import chess
 import os
 import sys
 from datetime import datetime
+
+
 class GuiView:
     def __init__(self):
         pygame.init()
@@ -197,16 +199,33 @@ class GuiView:
             # Odśwież tylko dialog i przycisk
             pygame.display.update([dialog_rect, button_rect])
 
+    def draw_surrender_button(self, rect, mouse_pos):
+        rect_color = (80, 80, 80) if rect.collidepoint(mouse_pos) else (67, 67, 67)
+        font_color = (250, 250, 250) if rect.collidepoint(mouse_pos) else (100, 100, 100)
+
+        pygame.draw.rect(self.screen, rect_color, rect, border_radius=10)
+
+        text_surface = pygame.font.Font(None, 36).render("Surrender", True, font_color)
+        text_rect = text_surface.get_rect(center=rect.center)
+        self.screen.blit(text_surface, text_rect)
+
     def enter_move(self) -> str:
         selected_square = None
+        button_rect = pygame.Rect(12, 785, 200, 60)
 
         while True:
+            mouse_pos = pygame.mouse.get_pos()
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
 
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if button_rect.collidepoint(mouse_pos):
+                        return 'ff'
+
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    x, y = pygame.mouse.get_pos()
+                    x, y = mouse_pos
 
                     col = (x - self.board_x_offset) // self.square_size
                     row = (y - self.board_y_offset) // self.square_size
@@ -227,6 +246,9 @@ class GuiView:
 
                             return move
 
+            self.draw_surrender_button(button_rect, mouse_pos)
+            pygame.display.flip()
+
     def __square_to_notation(self, square: Tuple) -> str:
         row, col = square
 
@@ -241,7 +263,7 @@ class GuiView:
         y = row * self.square_size + self.board_y_offset
 
         pygame.draw.rect(self.screen, self.board_colors['highlight'], (x, y, self.square_size, self.square_size), 3)
-        pygame.display.update((x, y, self.square_size, self.square_size))
+        # pygame.display.flip()
 
     def __unhighlight_square(self, selected_square: Tuple) -> None:
         row, col = selected_square
@@ -252,7 +274,7 @@ class GuiView:
         color = self.board_colors["white"] if is_white_square else self.board_colors["black"]
 
         pygame.draw.rect(self.screen, color, (x, y, self.square_size, self.square_size), 3)
-        pygame.display.update((x, y, self.square_size, self.square_size))
+        # pygame.display.flip()
 
     def display_board(self, board: CustomBoard, flip: bool=False, play_sound: bool = False) -> None:
         self.screen.fill((61, 61, 59))
