@@ -144,7 +144,7 @@ class GuiView:
         pass
 
     def end_game(self, message: str) -> None:
-        dialog_width = 270
+        dialog_width = 290
         dialog_height = 130
 
         # Kolory i styl
@@ -212,7 +212,7 @@ class GuiView:
         text_rect = text_surface.get_rect(center=rect.center)
         self.screen.blit(text_surface, text_rect)
 
-    def enter_move(self, flip=True) -> str:
+    def enter_move(self, flip=False) -> str:
         current_cursor = pygame.SYSTEM_CURSOR_ARROW
         selected_square = None
         button_rect = pygame.Rect(12, 663, 160, 60)
