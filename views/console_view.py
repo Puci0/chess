@@ -255,7 +255,7 @@ class ConsoleView:
         #     self.console.print("\n")
         #     self.console.print(table, justify="center", overflow="crop")
 
-    def enter_move(self) -> str:
+    def enter_move(self, flip=False) -> str:
         self.display_message("Enter a move: ")
         return self.screen.getstr().decode()
 

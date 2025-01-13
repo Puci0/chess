@@ -24,7 +24,7 @@ class MultiplayerGameController:
         self.view.display_board(self.board)
 
         if not self.__initialize_connection():
-            self.view.end_game("Unable to connect to the server. Make sure the server is running.")
+            self.view.end_game("Unable to connect.")
             return
 
         flip_board = self.__initialize_game()
@@ -66,7 +66,7 @@ class MultiplayerGameController:
 
     def __handle_player_turn(self, flip_board: bool) -> MoveResult:
         while True:
-            move = self.view.enter_move()
+            move = self.view.enter_move(flip=flip_board)
 
             move_command = MoveCommand(self.board, move)
             result = self.command_manager.execute_command(move_command)

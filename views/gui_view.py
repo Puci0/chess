@@ -13,12 +13,12 @@ from datetime import datetime
 class GuiView:
     def __init__(self):
         pygame.init()
-        self.SCREEN_WIDTH = 1200
-        self.SCREEN_HEIGHT = 900
+        self.SCREEN_WIDTH = 1000
+        self.SCREEN_HEIGHT = 750
         self.screen = pygame.display.set_mode((self.SCREEN_WIDTH, self.SCREEN_HEIGHT))
         pygame.display.set_caption("Chess Game")
         self.running = True
-        self.square_size = 750 // 8
+        self.square_size = 624 // 8
 
         self.button_text_color = (0,0,0)
         self.button_font = pygame.font.Font(None, 36)
@@ -40,6 +40,9 @@ class GuiView:
         }
         self.board_x_offset = (self.SCREEN_WIDTH - (self.square_size * 8)) // 2
         self.board_y_offset = 100
+        self.board_rect = pygame.Rect(self.board_x_offset, self.board_y_offset, self.square_size*8, self.square_size*8)
+
+        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
         self.font = pygame.font.SysFont('Arial', 16)
         self.text_color = (0, 0, 0)
@@ -192,7 +195,7 @@ class GuiView:
             pygame.draw.rect(self.screen, current_button_color, button_rect, border_radius=5)
 
             # Rysowanie tekstu na przycisku
-            button_text_surface = button_font.render("Wróć do menu", True, text_color)
+            button_text_surface = button_font.render("Back to menu", True, text_color)
             button_text_rect = button_text_surface.get_rect(center=button_rect.center)
             self.screen.blit(button_text_surface, button_text_rect)
 
@@ -209,9 +212,10 @@ class GuiView:
         text_rect = text_surface.get_rect(center=rect.center)
         self.screen.blit(text_surface, text_rect)
 
-    def enter_move(self) -> str:
+    def enter_move(self, flip=True) -> str:
+        current_cursor = pygame.SYSTEM_CURSOR_ARROW
         selected_square = None
-        button_rect = pygame.Rect(12, 785, 200, 60)
+        button_rect = pygame.Rect(12, 663, 160, 60)
 
         while True:
             mouse_pos = pygame.mouse.get_pos()
@@ -242,12 +246,32 @@ class GuiView:
                         else:
                             start_pos = self.__square_to_notation(selected_square)
                             end_pos = self.__square_to_notation(clicked_square)
+
+                            if flip:
+                                start_pos = self.__flip_notation(start_pos)
+                                end_pos = self.__flip_notation(end_pos)
+
                             move = f"{start_pos}{end_pos}"
 
                             return move
 
+            if self.board_rect.collidepoint(mouse_pos):
+                if current_cursor != pygame.SYSTEM_CURSOR_HAND:
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+                    current_cursor = pygame.SYSTEM_CURSOR_HAND
+            else:
+                if current_cursor != pygame.SYSTEM_CURSOR_ARROW:
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+                    current_cursor = pygame.SYSTEM_CURSOR_ARROW
+
             self.draw_surrender_button(button_rect, mouse_pos)
             pygame.display.flip()
+
+    def __flip_notation(self, notation: str) -> str:
+        col, row = notation[0], notation[1]
+        flipped_col = chr(ord('h') - (ord(col) - ord('a')))
+        flipped_row = str(9 - int(row))
+        return f"{flipped_col}{flipped_row}"
 
     def __square_to_notation(self, square: Tuple) -> str:
         row, col = square
