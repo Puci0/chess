@@ -1,0 +1,7 @@
+chess==1.11.1
+numpy==2.2.1
+pygame==2.6.1
+Requests==2.32.3
+rich==13.9.4
+sounddevice==0.5.1
+soundfile==0.13.0
