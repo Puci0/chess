@@ -92,7 +92,7 @@ class HistoryController:
                 else:
                     self.view.display_board(board)
             else:
-                self.view.end_game()
+                self.view.end_game("Press any key to continue...")
                 break
 
     def __automatic_game(self, moves: List[str]) -> None:

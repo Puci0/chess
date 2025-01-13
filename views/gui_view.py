@@ -13,12 +13,12 @@ from datetime import datetime
 class GuiView:
     def __init__(self):
         pygame.init()
-        self.SCREEN_WIDTH = 1200
-        self.SCREEN_HEIGHT = 900
+        self.SCREEN_WIDTH = 1000
+        self.SCREEN_HEIGHT = 750
         self.screen = pygame.display.set_mode((self.SCREEN_WIDTH, self.SCREEN_HEIGHT))
         pygame.display.set_caption("Chess Game")
         self.running = True
-        self.square_size = 750 // 8
+        self.square_size = 624 // 8
 
         self.button_text_color = (0,0,0)
         self.button_font = pygame.font.Font(None, 36)
@@ -113,8 +113,8 @@ class GuiView:
                     current_cursor = pygame.SYSTEM_CURSOR_ARROW
 
             # render images
-            self.render_image(self.pieces_menu_path,55,600)
-            self.render_image(self.chess_string_menu_path, 280,20)
+            self.render_image(self.pieces_menu_path,68,580)
+            self.render_image(self.chess_string_menu_path, 190,20)
 
             pygame.display.update()
         pygame.quit()
@@ -362,7 +362,7 @@ class GuiView:
 
     def display_header(self,font):
         legend_surface = font.render(f"Type{' ' * 15}Winner {' ' * 20} Action {' ' * 18} Moves {' ' * 32} Datetime",True, (255, 255, 255))
-        rect_x = 150
+        rect_x = 50
         rect_y = 200
         rect_width = 900
         rect_height = 45
@@ -396,7 +396,7 @@ class GuiView:
                         f"{type} {' ' * 17} Player {' ' * 55} {count} {' ' * 20 + str(self.__extract_date_from_filename(file))}",
                         True, (0, 0, 0))
             text_height = text_surface.get_height()
-            rect = pygame.Rect(150, y_offset, 900, text_height + 10)
+            rect = pygame.Rect(50, y_offset, 900, text_height + 10)
             file_rects.append((rect, file))
             pygame.draw.rect(self.screen, (255, 255, 255), rect)
             self.screen.blit(text_surface, (rect.x + 5, rect.y + 5))
@@ -443,19 +443,21 @@ class GuiView:
 
         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
-        bot_files_list = sorted(bot_files.keys(), key=self.__extract_date_from_filename)[-8:]
-        multiplayer_files_list = sorted(multiplayer_files.keys(), key=self.__extract_date_from_filename)[-8:]
+        bot_files_list = sorted(bot_files.keys(), key=self.__extract_date_from_filename)[-7:]
+        multiplayer_files_list = sorted(multiplayer_files.keys(), key=self.__extract_date_from_filename)[-6:]
         bot_files = {file: bot_files[file] for file in bot_files_list}
         multiplayer_files = {file: multiplayer_files[file] for file in multiplayer_files_list}
         font = pygame.font.Font(None, 30)
+
 
         while True:
             self.screen.fill((61, 61, 59))
             mouse_pos = pygame.mouse.get_pos()
 
-            self.render_image(self.history_path, 240, 30)
+            self.render_image(self.history_path, 130, 30)
 
             self.display_header(font)
+
 
             y_offset = 250
 
@@ -464,6 +466,13 @@ class GuiView:
 
             y_offset, multiplayer_file_rects, analize_multiplayer_rects, auto_multiplayers_rects = self.draw_history_section(
                 multiplayer_files, y_offset, "Online", mouse_pos, font)
+
+            #przycisk quit
+            quit_button = pygame.Rect(50, self.SCREEN_HEIGHT - 43, 60, 35)
+            pygame.draw.rect(self.screen, (40, 40, 40), quit_button, border_radius=5)
+            quit_text = pygame.font.Font(None, 24).render("Quit", True, (255, 255, 255))
+            quit_text_rect = quit_text.get_rect(center=quit_button.center)
+            self.screen.blit(quit_text, quit_text_rect)
 
             pygame.display.flip()
 
@@ -488,3 +497,46 @@ class GuiView:
                         for rect, file in auto_multiplayers_rects:
                             if rect.collidepoint(mouse_pos):
                                 return HistoryOption.AUTOMATIC_GAME, file, 2
+
+                    if quit_button.collidepoint(mouse_pos):
+                        return HistoryOption.QUIT, None, -1
+
+    def get_user_input_for_analysis(self) -> str:
+        arrow_left = pygame.Rect(30, self.SCREEN_HEIGHT - 77, 50, 50)
+        arrow_right = pygame.Rect(100, self.SCREEN_HEIGHT - 77, 50, 50)
+        arrow_color = (0, 0, 0)
+        quit_button = pygame.Rect(self.SCREEN_WIDTH - 130, self.SCREEN_HEIGHT - 77, 70, 50)
+
+        waiting_for_input = True
+        while waiting_for_input:
+            self.render_border_image(arrow_right, radius=5, border_thickness=2)
+            self.render_border_image(arrow_left, radius=5, border_thickness=2)
+            pygame.draw.polygon(self.screen, arrow_color, [
+                (arrow_left.x + 10, arrow_left.centery),
+                (arrow_left.right - 10, arrow_left.top + 10),
+                (arrow_left.right - 10, arrow_left.bottom - 10)
+            ])
+
+            pygame.draw.polygon(self.screen, arrow_color, [
+                (arrow_right.right - 10, arrow_right.centery),
+                (arrow_right.left + 10, arrow_right.top + 10),
+                (arrow_right.left + 10, arrow_right.bottom - 10)
+            ])
+
+            pygame.draw.rect(self.screen, (40,40,40), quit_button, border_radius=5)
+            quit_text = pygame.font.Font(None, 24).render("Quit", True, (255, 255, 255))
+            quit_text_rect = quit_text.get_rect(center=quit_button.center)
+            self.screen.blit(quit_text, quit_text_rect)
+
+            pygame.display.update()
+
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if arrow_left.collidepoint(event.pos):
+                        return 'backward'
+                    elif arrow_right.collidepoint(event.pos):
+                        return 'forward'
+                    elif quit_button.collidepoint(event.pos):
+                        return 'quit'
+                elif event.type == pygame.QUIT:
+                    pygame.quit()
